@@ -1,0 +1,6 @@
+{
+  "name": "EireCareer - Irish Job Hunting & AI Career Suite",
+  "description": "Tailored Irish CV & cover letter generator, ATS score checker, competency interview coach, and job tracking dashboard for Ireland.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
