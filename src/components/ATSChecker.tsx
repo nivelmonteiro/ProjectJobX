@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import mammoth from 'mammoth';
 import { UserCredential, ATSAnalysis, TailoredResume } from '../types';
 import { apiClient } from '../utils/apiClient';
 import confetti from 'canvas-confetti';
@@ -76,22 +77,42 @@ Key Requirements:
     setIsUploadingFile(true);
 
     try {
-      if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+      const lowerName = file.name.toLowerCase();
+
+      // 1. Text or Markdown files
+      if (file.type === 'text/plain' || lowerName.endsWith('.txt') || lowerName.endsWith('.md')) {
         const text = await file.text();
         setResumeText(text);
         setUploadedFileName(file.name);
-      } else {
-        const res = await apiClient.parseResumeFile(file);
-        if (res.text) {
-          setResumeText(res.text);
-          setUploadedFileName(res.fileName || file.name);
-        } else {
-          throw new Error('Could not extract text from document. Please paste the CV text directly.');
+        return;
+      }
+
+      // 2. Client-side DOCX extraction
+      if (lowerName.endsWith('.docx') || file.type.includes('wordprocessingml')) {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const docxResult = await mammoth.extractRawText({ arrayBuffer });
+          if (docxResult.value && docxResult.value.trim().length > 30) {
+            setResumeText(docxResult.value.trim());
+            setUploadedFileName(file.name);
+            return;
+          }
+        } catch (docxErr) {
+          console.warn('ATS docx parse note, falling back to server:', docxErr);
         }
+      }
+
+      // 3. Multi-layer Server parsing (PDF, DOCX, DOC, OCR)
+      const res = await apiClient.parseResumeFile(file);
+      if (res.text && res.text.trim().length > 0) {
+        setResumeText(res.text.trim());
+        setUploadedFileName(res.fileName || file.name);
+      } else {
+        throw new Error('Could not extract text from document. Please paste the CV text directly or upload a PDF/Word file.');
       }
     } catch (err: any) {
       console.error('ATS upload parsing error:', err);
-      setError(err.message || 'Failed to read uploaded resume file');
+      setError(err.message || 'Failed to read uploaded resume file. Please ensure it is a PDF, Word (.docx/.doc), or TXT file.');
     } finally {
       setIsUploadingFile(false);
     }
@@ -245,7 +266,7 @@ Key Requirements:
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".pdf,.txt,.md,.docx"
+                  accept=".pdf,.docx,.doc,.txt,.md,.rtf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
                   onChange={handleFileSelect}
                   className="hidden"
                 />
@@ -253,7 +274,7 @@ Key Requirements:
                 {isUploadingFile ? (
                   <div className="flex items-center justify-center gap-2 py-0.5 text-xs text-emerald-700 font-medium">
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Parsing resume file...</span>
+                    <span>Parsing resume file (PDF / Word / Text)...</span>
                   </div>
                 ) : uploadedFileName ? (
                   <div className="flex items-center justify-between text-xs text-emerald-900 px-2">
@@ -268,7 +289,7 @@ Key Requirements:
                 ) : (
                   <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600">
                     <Upload className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Drop existing CV (PDF, TXT) or click to upload</span>
+                    <span>Drop existing CV (PDF, Word .docx/.doc, TXT) or click to upload</span>
                   </div>
                 )}
               </div>

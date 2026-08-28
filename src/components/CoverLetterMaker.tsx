@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserCredential, TailoredCoverLetter } from '../types';
 import { apiClient } from '../utils/apiClient';
 import { exportCoverLetterToPDF } from '../utils/pdfExport';
+import { IRISH_VISA_OPTIONS, IRISH_LOCATIONS } from './ResumeMaker';
 import confetti from 'canvas-confetti';
 import { 
   Mail, 
@@ -14,7 +15,8 @@ import {
   Building2, 
   ShieldCheck,
   Edit3,
-  Eye
+  Eye,
+  User
 } from 'lucide-react';
 
 interface CoverLetterMakerProps {
@@ -32,6 +34,12 @@ export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
   savedLetters,
   onSaveLetter
 }) => {
+  const [candidateName, setCandidateName] = useState(currentCredential.name || 'Nivel Monteiro');
+  const [candidateVisa, setCandidateVisa] = useState(currentCredential.visaStatus || 'Stamp 1G (Third Level Graduate)');
+  const [candidatePhone, setCandidatePhone] = useState(currentCredential.phone || '+353 89 984 7924');
+  const [candidateEmail, setCandidateEmail] = useState(currentCredential.email || 'nivelmonteiro@outlook.com');
+  const [candidateLocation, setCandidateLocation] = useState(currentCredential.location || 'Dublin (Silicon Docks / City)');
+
   const [jobTitle, setJobTitle] = useState('Senior Full Stack Developer');
   const [companyName, setCompanyName] = useState('Stripe Ireland');
   const [companyLocation, setCompanyLocation] = useState('Grand Canal Dock, Dublin 2, Ireland');
@@ -49,19 +57,31 @@ export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
     savedLetters.length > 0 ? savedLetters[0] : null
   );
 
-  const handleGenerate = async () => {
-    if (remainingQuota <= 0) {
-      setError(`Daily AI generation limit reached for ${currentCredential.id}. Resets at midnight UTC.`);
-      return;
-    }
+  useEffect(() => {
+    setCandidateName(currentCredential.name);
+    setCandidateVisa(currentCredential.visaStatus);
+    setCandidatePhone(currentCredential.phone);
+    setCandidateEmail(currentCredential.email);
+    setCandidateLocation(currentCredential.location);
+  }, [currentCredential.id]);
 
+  const handleGenerate = async () => {
     setIsGenerating(true);
     setError(null);
+
+    const tailoredProfile: UserCredential = {
+      ...currentCredential,
+      name: candidateName.trim() || currentCredential.name,
+      visaStatus: candidateVisa as any,
+      email: candidateEmail.trim() || currentCredential.email,
+      phone: candidatePhone.trim() || currentCredential.phone,
+      location: candidateLocation as any
+    };
 
     try {
       const res = await apiClient.makeCoverLetter({
         credentialId: currentCredential.id,
-        userProfile: currentCredential,
+        userProfile: tailoredProfile,
         jobTitle,
         companyName,
         companyLocation,
@@ -85,17 +105,17 @@ export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
     if (!currentLetter) return;
     exportCoverLetterToPDF(
       currentLetter,
-      currentCredential.name,
-      currentCredential.phone,
-      currentCredential.email,
-      currentCredential.location
+      candidateName,
+      candidatePhone,
+      candidateEmail,
+      candidateLocation
     );
     confetti({ particleCount: 35, spread: 45 });
   };
 
   const handleCopyText = () => {
     if (!currentLetter) return;
-    const text = currentLetter.fullFormattedText || `${currentCredential.name}\n${currentCredential.location} | ${currentCredential.phone} | ${currentCredential.email}\n\n${new Date().toLocaleDateString('en-IE')}\n\n${currentLetter.hiringManager}\n${currentLetter.targetCompany}\n${currentLetter.companyAddressOrLocation}\n\nDear ${currentLetter.hiringManager},\n\n${currentLetter.openingParagraph}\n\n${currentLetter.bodyParagraphs?.join('\n\n')}\n\n${currentLetter.workAuthorizationStatement}\n\n${currentLetter.closingParagraph}\n\n${currentLetter.signOff}\n\n${currentCredential.name}`;
+    const text = currentLetter.fullFormattedText || `${candidateName}\n${candidateLocation} | ${candidatePhone} | ${candidateEmail}\n\n${new Date().toLocaleDateString('en-IE')}\n\n${currentLetter.hiringManager}\n${currentLetter.targetCompany}\n${currentLetter.companyAddressOrLocation}\n\nDear ${currentLetter.hiringManager},\n\n${currentLetter.openingParagraph}\n\n${currentLetter.bodyParagraphs?.join('\n\n')}\n\n${currentLetter.workAuthorizationStatement}\n\n${currentLetter.closingParagraph}\n\n${currentLetter.signOff}\n\n${candidateName}`;
     
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -127,6 +147,35 @@ export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
             
+            {/* Candidate Name & Visa / Stamp Selector */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <label className="text-xs font-bold text-slate-800 block mb-1">Candidate Name</label>
+                <input
+                  type="text"
+                  value={candidateName}
+                  onChange={(e) => setCandidateName(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-hidden bg-slate-50/50 font-semibold"
+                  placeholder="e.g. Nivel Monteiro"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-800 block mb-1">Irish Work Eligibility</label>
+                <select
+                  value={candidateVisa}
+                  onChange={(e) => setCandidateVisa(e.target.value)}
+                  className="w-full px-2.5 py-2 text-xs border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-hidden bg-emerald-50/40 text-emerald-950 font-medium"
+                >
+                  {IRISH_VISA_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">Target Role</label>

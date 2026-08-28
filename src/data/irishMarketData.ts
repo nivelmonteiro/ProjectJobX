@@ -3,6 +3,20 @@ import { IrishSalaryBenchmark, UserCredential, ExternalJobListing } from '../typ
 export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
   {
     id: 'IRL-JOB-101',
+    name: 'Nivel Monteiro',
+    email: 'nivelmonteiro@outlook.com',
+    headline: 'Strategic Finance & Accounting Analyst | Financial Crime, KYC & Audit (MBA)',
+    location: 'Dublin (Silicon Docks / City)',
+    visaStatus: 'Stamp 1G (Third Level Graduate)',
+    phone: '+353 89 984 7924',
+    eircode: 'D02 X285',
+    linkedinUrl: 'https://linkedin.com/in/nivelmonteiro',
+    dailyUsageCount: 0,
+    lastUsageDate: new Date().toISOString().split('T')[0],
+    maxDailyQuota: 4
+  },
+  {
+    id: 'IRL-JOB-102',
     name: 'Aoife Murphy',
     email: 'aoife.murphy.irl@eirecareers.ie',
     headline: 'Senior Full Stack Developer (React / Node / AWS)',
@@ -17,7 +31,7 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     maxDailyQuota: 4
   },
   {
-    id: 'IRL-JOB-102',
+    id: 'IRL-JOB-103',
     name: 'Rahul Sharma',
     email: 'rahul.sharma@eirecareers.ie',
     headline: 'Data Scientist & ML Engineer (NFQ Level 9 UCD Graduate)',
@@ -27,12 +41,12 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     eircode: 'D04 T294',
     linkedinUrl: 'https://linkedin.com/in/rahulsharma-ds',
     githubUrl: 'https://github.com/rahulsharma-ai',
-    dailyUsageCount: 1,
+    dailyUsageCount: 0,
     lastUsageDate: new Date().toISOString().split('T')[0],
     maxDailyQuota: 4
   },
   {
-    id: 'IRL-JOB-103',
+    id: 'IRL-JOB-104',
     name: 'Ciaran O\'Connor',
     email: 'ciaran.oconnor@eirecareers.ie',
     headline: 'Product Manager & Scrum Master (Fintech / IFSC)',
@@ -46,7 +60,7 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     maxDailyQuota: 4
   },
   {
-    id: 'IRL-JOB-104',
+    id: 'IRL-JOB-105',
     name: 'Elena Rossi',
     email: 'elena.rossi@eirecareers.ie',
     headline: 'DevOps & Cloud Infrastructure Specialist',
@@ -56,7 +70,7 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     eircode: 'H91 V890',
     linkedinUrl: 'https://linkedin.com/in/elenarossi-cloud',
     githubUrl: 'https://github.com/elenarossi',
-    dailyUsageCount: 2,
+    dailyUsageCount: 0,
     lastUsageDate: new Date().toISOString().split('T')[0],
     maxDailyQuota: 4
   }

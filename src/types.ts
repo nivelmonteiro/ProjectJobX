@@ -1,10 +1,13 @@
 export type IrishStampVisa = 
-  | 'EU/EEA/Irish Citizen'
-  | 'Stamp 4 (Full Work Rights)'
   | 'Stamp 1G (Third Level Graduate)'
+  | 'Stamp 1G (Spouse/Partner of CSEP)'
   | 'Stamp 1 (Employment Permit Required)'
+  | 'Stamp 4 (Full Work Rights)'
+  | 'EU/EEA/Irish Citizen'
   | 'Critical Skills (CSEP Eligible)'
-  | 'UK/Common Travel Area';
+  | 'UK/Common Travel Area'
+  | 'Stamp 2 (Student - 20h/40h)'
+  | string;
 
 export type IrishLocation = 
   | 'Dublin (Silicon Docks / City)'
