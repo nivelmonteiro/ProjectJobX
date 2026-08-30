@@ -46,7 +46,7 @@ function getGenAI(): GoogleGenAI | null {
   return genAIClient;
 }
 
-// Resilient Multi-Tier Gemini Model Fallback List (eliminating deprecated 2.5 models)
+// Resilient Multi-Tier Gemini Model Fallback List (supported models from gemini-api skill)
 const GEMINI_MODELS = [
   'gemini-3.7-flash',
   'gemini-3.1-flash-lite',
@@ -60,8 +60,8 @@ interface GeminiJSONOptions {
 }
 
 /**
- * Executes a structured Gemini JSON request with automatic retries on transient errors (503 / 429 / 500)
- * and seamless fallback across modern Gemini model tiers.
+ * Executes a structured Gemini JSON request with automatic retries on transient errors (503 / 500 / network)
+ * and seamless, fast fallback across modern Gemini model tiers on 429/quota limits.
  */
 async function callGeminiJSON(options: GeminiJSONOptions): Promise<any> {
   const ai = getGenAI();
@@ -72,54 +72,75 @@ async function callGeminiJSON(options: GeminiJSONOptions): Promise<any> {
   let lastError: any = null;
 
   for (const model of GEMINI_MODELS) {
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const response = await ai.models.generateContent({
-          model,
-          contents: options.contents,
-          config: {
-            systemInstruction: options.systemInstruction,
-            responseMimeType: 'application/json',
-            temperature: options.temperature ?? 0.3,
-          },
-        });
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: options.contents,
+        config: {
+          systemInstruction: options.systemInstruction,
+          responseMimeType: 'application/json',
+          temperature: options.temperature ?? 0.3,
+        },
+      });
 
-        const text = response.text || '';
-        const cleaned = text
-          .replace(/^```json\s*/i, '')
-          .replace(/^```\s*/i, '')
-          .replace(/\s*```$/, '')
-          .trim();
+      const text = response.text || '';
+      const cleaned = text
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/\s*```$/, '')
+        .trim();
 
-        if (!cleaned) {
-          throw new Error('Empty response received from Gemini');
-        }
+      if (!cleaned) {
+        throw new Error('Empty response received from Gemini');
+      }
 
-        const parsed = JSON.parse(cleaned);
-        return parsed;
-      } catch (err: any) {
-        lastError = err;
-        const msg = String(err?.message || err || '');
-        const isTransient =
-          msg.includes('503') ||
+      const parsed = JSON.parse(cleaned);
+      return parsed;
+    } catch (err: any) {
+      lastError = err;
+      const msg = String(err?.message || err || '');
+      const isQuotaOrRateLimit =
+        msg.includes('429') ||
+        msg.includes('RESOURCE_EXHAUSTED') ||
+        msg.includes('exceeded your current quota') ||
+        msg.includes('quota') ||
+        msg.includes('Quota');
+
+      const isTransient =
+        !isQuotaOrRateLimit &&
+        (msg.includes('503') ||
           msg.includes('UNAVAILABLE') ||
           msg.includes('high demand') ||
-          msg.includes('429') ||
-          msg.includes('RESOURCE_EXHAUSTED') ||
           msg.includes('Overloaded') ||
           msg.includes('500') ||
-          msg.includes('fetch failed');
+          msg.includes('fetch failed'));
 
-        console.warn(`[Gemini Request] Model ${model} (attempt ${attempt}/2) failed: ${msg.slice(0, 140)}`);
-
-        if (isTransient && attempt < 2) {
-          // Short jittered delay before retry on transient high demand
-          await new Promise((r) => setTimeout(r, 800 * attempt + Math.floor(Math.random() * 300)));
-        } else {
-          // Fall through to next model tier in list
-          break;
+      // If transient high demand and not quota-exhausted, do a quick single retry
+      if (isTransient) {
+        try {
+          await new Promise((r) => setTimeout(r, 600));
+          const retryRes = await ai.models.generateContent({
+            model,
+            contents: options.contents,
+            config: {
+              systemInstruction: options.systemInstruction,
+              responseMimeType: 'application/json',
+              temperature: options.temperature ?? 0.3,
+            },
+          });
+          const retryText = (retryRes.text || '')
+            .replace(/^```json\s*/i, '')
+            .replace(/^```\s*/i, '')
+            .replace(/\s*```$/, '')
+            .trim();
+          if (retryText) {
+            return JSON.parse(retryText);
+          }
+        } catch (retryErr) {
+          lastError = retryErr;
         }
       }
+      // If quota or rate limited on this model tier, seamlessly fall through to next model tier
     }
   }
 
@@ -133,7 +154,7 @@ async function callGeminiExtract(parts: any[]): Promise<string> {
   const ai = getGenAI();
   if (!ai) return '';
 
-  for (const model of ['gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest']) {
+  for (const model of GEMINI_MODELS) {
     try {
       const geminiRes = await ai.models.generateContent({
         model,
@@ -147,8 +168,8 @@ async function callGeminiExtract(parts: any[]): Promise<string> {
       if (geminiRes.text && geminiRes.text.trim().length > 30) {
         return geminiRes.text.trim();
       }
-    } catch (err) {
-      console.warn(`[Extract Fallback] Model ${model} failed:`, err);
+    } catch {
+      // Continue to next fallback model
     }
   }
   return '';
@@ -156,7 +177,7 @@ async function callGeminiExtract(parts: any[]): Promise<string> {
 
 // In-Memory & Persistent store for Credentials, Quotas, and User Data
 const MAX_CREDENTIALS = 4;
-const MAX_DAILY_QUOTA = 4;
+const MAX_DAILY_QUOTA = 50; // Generous daily allowance for interactive drafting & prep
 
 interface CredentialRecord {
   id: string;
