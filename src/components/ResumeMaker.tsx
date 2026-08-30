@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import mammoth from 'mammoth';
 import { UserCredential, TailoredResume, WorkExperience, EducationItem, IrishStampVisa, IrishLocation } from '../types';
 import { apiClient } from '../utils/apiClient';
 import { exportResumeToPDF } from '../utils/pdfExport';
+import { extractTextFromFile, extractProfileFromText } from '../utils/fileParser';
 import confetti from 'canvas-confetti';
 import { 
   Sparkles, 
@@ -121,44 +121,56 @@ export const ResumeMaker: React.FC<ResumeMakerProps> = ({
     setIsUploadingFile(true);
 
     try {
-      const lowerName = file.name.toLowerCase();
+      // Extract text directly in client (PDF, DOCX, TXT, MD) with multi-layer fallback
+      const result = await extractTextFromFile(file);
+      if (result.text && result.text.trim().length > 0) {
+        setExistingNotes(result.text.trim());
+        setUploadedFileName(result.fileName || file.name);
 
-      // 1. Text or Markdown files
-      if (file.type === 'text/plain' || lowerName.endsWith('.txt') || lowerName.endsWith('.md')) {
-        const text = await file.text();
-        setExistingNotes(text);
-        setUploadedFileName(file.name);
-        return;
-      }
-
-      // 2. Client-side DOCX extraction with mammoth for instant speed
-      if (lowerName.endsWith('.docx') || file.type.includes('wordprocessingml')) {
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          const docxResult = await mammoth.extractRawText({ arrayBuffer });
-          if (docxResult.value && docxResult.value.trim().length > 30) {
-            setExistingNotes(docxResult.value.trim());
-            setUploadedFileName(file.name);
-            return;
-          }
-        } catch (docxErr) {
-          console.warn('Client-side docx parsing note, trying server:', docxErr);
+        // Auto-extract candidate contact details from CV text if found
+        const extracted = extractProfileFromText(result.text);
+        if (extracted.fullName) setCandidateName(extracted.fullName);
+        if (extracted.email) setCandidateEmail(extracted.email);
+        if (extracted.phone) setCandidatePhone(extracted.phone);
+        if (extracted.location) setCandidateLocation(extracted.location as IrishLocation);
+        if (extracted.eircode) setCandidateEircode(extracted.eircode);
+        if (extracted.visaStatus) {
+          setCandidateVisa(extracted.visaStatus);
+          setShowWorkEligibility(true);
         }
-      }
-
-      // 3. Multi-layer Server parsing (PDF, Word, DOC, DOCX, OCR Fallback)
-      const res = await apiClient.parseResumeFile(file);
-      if (res.text && res.text.trim().length > 0) {
-        setExistingNotes(res.text.trim());
-        setUploadedFileName(res.fileName || file.name);
+        if (extracted.linkedinUrl) setCandidateLinkedin(extracted.linkedinUrl);
       } else {
-        throw new Error('Could not extract text from document. Please paste the CV text directly or upload a PDF/Word file.');
+        throw new Error('Could not extract readable text from document. Please paste the CV text directly or upload a PDF/Word file.');
       }
     } catch (err: any) {
       console.error('Upload parsing error:', err);
       setError(err.message || 'Failed to read uploaded resume file. Please ensure it is a valid PDF, DOCX, DOC, or TXT file.');
     } finally {
       setIsUploadingFile(false);
+    }
+  };
+
+  const handleAutoFillFromPastedText = () => {
+    if (!existingNotes.trim()) {
+      setError('Please paste your resume text in the box below first.');
+      return;
+    }
+    const extracted = extractProfileFromText(existingNotes);
+    let count = 0;
+    if (extracted.fullName) { setCandidateName(extracted.fullName); count++; }
+    if (extracted.email) { setCandidateEmail(extracted.email); count++; }
+    if (extracted.phone) { setCandidatePhone(extracted.phone); count++; }
+    if (extracted.location) { setCandidateLocation(extracted.location as IrishLocation); count++; }
+    if (extracted.eircode) { setCandidateEircode(extracted.eircode); count++; }
+    if (extracted.visaStatus) {
+      setCandidateVisa(extracted.visaStatus);
+      setShowWorkEligibility(true);
+      count++;
+    }
+    if (extracted.linkedinUrl) { setCandidateLinkedin(extracted.linkedinUrl); count++; }
+
+    if (count > 0) {
+      confetti({ particleCount: 30, spread: 40 });
     }
   };
 
@@ -766,21 +778,32 @@ ${(currentResume.education || []).map(e => `- **${e.degree}** - ${e.institution}
 
                 {/* Textarea for viewing/editing extracted existing resume */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-medium text-slate-500">
-                      Existing Resume Text / Work History
+                  <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
+                    <span className="text-[11px] font-medium text-slate-700 flex items-center gap-1">
+                      <span>Existing Resume Text / Work History</span>
+                      {existingNotes && (
+                        <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1 rounded">
+                          {existingNotes.length} chars
+                        </span>
+                      )}
                     </span>
                     {existingNotes && (
-                      <span className="text-[10px] font-mono text-slate-400">
-                        {existingNotes.length} characters
-                      </span>
+                      <button
+                        type="button"
+                        onClick={handleAutoFillFromPastedText}
+                        className="text-[10px] font-semibold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 px-2 py-0.5 rounded transition-colors flex items-center gap-1"
+                        title="Auto-detect Candidate Name, Email, Phone, Eircode, and Visa status from pasted CV"
+                      >
+                        <Sparkles className="w-2.5 h-2.5" />
+                        Auto-Detect Contact & Profile
+                      </button>
                     )}
                   </div>
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={existingNotes}
                     onChange={(e) => setExistingNotes(e.target.value)}
-                    placeholder="Paste or review your existing CV history, key projects, and accomplishments here. AI will re-engineer it strictly around the job description..."
+                    placeholder="Paste or review your existing CV history, key projects, degrees, and accomplishments here. Uploading or pasting your CV works 100% offline & on Vercel..."
                     className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-hidden resize-none bg-slate-50/50"
                   />
                 </div>

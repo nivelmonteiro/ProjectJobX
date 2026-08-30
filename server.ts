@@ -1421,6 +1421,19 @@ ${candidateAnswer}`;
   }
 });
 
+// API 404 & error handler to ensure JSON responses on all /api routes
+app.use('/api', (req: Request, res: Response) => {
+  res.status(404).json({ error: `API route not found: ${req.method} ${req.originalUrl}` });
+});
+
+app.use((err: any, req: Request, res: Response, next: any) => {
+  if (req.path.startsWith('/api')) {
+    console.error('[API Error Guard]:', err);
+    return res.status(500).json({ error: err?.message || 'Internal Server Error' });
+  }
+  next(err);
+});
+
 // Vite & Static server setup
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {

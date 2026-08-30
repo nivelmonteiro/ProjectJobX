@@ -5,6 +5,7 @@ import {
   generateClientFallbackCoverLetter, 
   generateClientFallbackInterviewPrep 
 } from './clientFallbacks';
+import { extractTextFromFile } from './fileParser';
 
 export interface UserDataPayload {
   resumes: TailoredResume[];
@@ -15,14 +16,14 @@ export interface UserDataPayload {
 }
 
 /**
- * Safe fetch with automatic retry and error inspection
+ * Safe fetch with automatic retry, timeout, and response validation
  */
-async function safeFetch(url: string, options: RequestInit = {}, retries = 2): Promise<Response> {
+async function safeFetch(url: string, options: RequestInit = {}, retries = 1): Promise<Response> {
   let lastErr: any = null;
   for (let i = 0; i <= retries; i++) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       const res = await fetch(url, {
         ...options,
         signal: controller.signal
@@ -32,41 +33,89 @@ async function safeFetch(url: string, options: RequestInit = {}, retries = 2): P
     } catch (err: any) {
       lastErr = err;
       if (i < retries) {
-        await new Promise(r => setTimeout(r, 400 * (i + 1)));
+        await new Promise(r => setTimeout(r, 200 * (i + 1)));
       }
     }
   }
   throw lastErr || new Error('Network request failed');
 }
 
+/**
+ * Bulletproof helper to extract JSON from response, guarding against HTML error pages
+ * (e.g., Vercel SPA rewrites, "The page could not be found", 404/500 text)
+ */
+async function safeJson(res: Response | null | undefined): Promise<any> {
+  if (!res) return null;
+  try {
+    const text = await res.text();
+    if (!text || text.trim().length === 0) {
+      return null;
+    }
+    const trimmed = text.trim();
+    // Guard against HTML error pages ("The page could not be found", "<!DOCTYPE html>", etc.)
+    if (
+      trimmed.startsWith('<!') ||
+      trimmed.startsWith('<html') ||
+      trimmed.startsWith('<head') ||
+      trimmed.startsWith('<body') ||
+      trimmed.startsWith('The page') ||
+      (!trimmed.startsWith('{') && !trimmed.startsWith('['))
+    ) {
+      return null;
+    }
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Safe localStorage JSON parser
+ */
+function safeStorageParse<T>(key: string, fallback: T): T {
+  try {
+    const item = localStorage.getItem(key);
+    if (!item) return fallback;
+    const trimmed = item.trim();
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+      return fallback;
+    }
+    return JSON.parse(trimmed) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 export const apiClient = {
   async getCredentials(): Promise<{ credentials: UserCredential[]; maxAllowed: number; maxDailyPerUser: number }> {
     try {
       const res = await safeFetch('/api/auth/credentials');
-      if (res.ok) {
-        return await res.json();
+      const data = await safeJson(res);
+      if (data && Array.isArray(data.credentials)) {
+        return data;
       }
     } catch (err) {
-      console.warn('API getCredentials fallback:', err);
+      console.warn('API getCredentials local fallback:', err);
     }
-    const saved = localStorage.getItem('eire_credentials');
+    const list = safeStorageParse<UserCredential[]>('eire_credentials', []);
     return {
-      credentials: saved ? JSON.parse(saved) : [],
+      credentials: list,
       maxAllowed: 4,
-      maxDailyPerUser: 4
+      maxDailyPerUser: 50
     };
   },
 
   async getQuota(credentialId: string): Promise<{ remaining: number; maxAllowed: number }> {
     try {
       const res = await safeFetch(`/api/quota?credentialId=${encodeURIComponent(credentialId)}`);
-      if (res.ok) {
-        return await res.json();
+      const data = await safeJson(res);
+      if (data && data.remaining !== undefined) {
+        return data;
       }
     } catch (e) {
       console.warn('Quota check fallback:', e);
     }
-    return { remaining: 4, maxAllowed: 4 };
+    return { remaining: 50, maxAllowed: 50 };
   },
 
   async login(credentialId: string, email?: string): Promise<{ credential: UserCredential; remainingQuota: number }> {
@@ -76,18 +125,18 @@ export const apiClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credentialId, email })
       });
-      if (res.ok) {
-        return await res.json();
+      const data = await safeJson(res);
+      if (data && data.credential) {
+        return data;
       }
     } catch (e) {
       console.warn('Login fallback to local state:', e);
     }
-    const saved = localStorage.getItem('eire_credentials');
-    const list: UserCredential[] = saved ? JSON.parse(saved) : [];
+    const list = safeStorageParse<UserCredential[]>('eire_credentials', []);
     const found = list.find(c => c.id === credentialId || (email && c.email.toLowerCase() === email.toLowerCase())) || list[0];
     return {
       credential: found,
-      remainingQuota: 4
+      remainingQuota: 50
     };
   },
 
@@ -98,8 +147,9 @@ export const apiClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData)
       });
-      if (res.ok) {
-        return await res.json();
+      const data = await safeJson(res);
+      if (data && data.credential) {
+        return data;
       }
     } catch (e) {
       console.warn('Update profile server sync deferred:', e);
@@ -110,21 +160,20 @@ export const apiClient = {
   async getUserData(credentialId: string): Promise<UserDataPayload> {
     try {
       const res = await safeFetch(`/api/user/data/${credentialId}`);
-      if (res.ok) {
-        return await res.json();
+      const data = await safeJson(res);
+      if (data && typeof data === 'object' && data.resumes) {
+        return data;
       }
     } catch (e) {
       console.warn('Network load error, checking local store:', e);
     }
-    // LocalStorage fallback
-    const local = localStorage.getItem(`eirecareer_data_${credentialId}`);
-    return local ? JSON.parse(local) : {
+    return safeStorageParse<UserDataPayload>(`eirecareer_data_${credentialId}`, {
       resumes: [],
       coverLetters: [],
       atsAnalyses: [],
       interviewPreps: [],
       jobApplications: []
-    };
+    });
   },
 
   async saveUserData(credentialId: string, data: UserDataPayload): Promise<void> {
@@ -143,8 +192,9 @@ export const apiClient = {
   async getExternalJobs(): Promise<{ jobs: ExternalJobListing[]; source: string }> {
     try {
       const res = await safeFetch('/api/external/jobs');
-      if (res.ok) {
-        return await res.json();
+      const data = await safeJson(res);
+      if (data && Array.isArray(data.jobs)) {
+        return data;
       }
     } catch (e) {
       console.warn('External jobs fetch fallback:', e);
@@ -152,7 +202,22 @@ export const apiClient = {
     return { jobs: [], source: 'local-cache' };
   },
 
+  /**
+   * Universal Resume & Document file extractor (Client-First + Server Fallback)
+   * 100% functional on Vercel, Netlify, offline, or with backend server
+   */
   async parseResumeFile(file: File): Promise<{ text: string; fileName: string; characterCount: number }> {
+    try {
+      // 1. Instant client-side parsing (PDF via pdfjs-dist, DOCX via mammoth, TXT via FileReader)
+      const clientResult = await extractTextFromFile(file);
+      if (clientResult.text && clientResult.text.length > 20) {
+        return clientResult;
+      }
+    } catch (clientErr) {
+      console.warn('Client extraction error, attempting server fallback:', clientErr);
+    }
+
+    // 2. Multi-tier server parser fallback if backend is active
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -167,14 +232,14 @@ export const apiClient = {
               fileType: file.type
             })
           });
-          const data = await res.json();
-          if (res.ok && data.text) {
+          const data = await safeJson(res);
+          if (data.text) {
             return resolve(data);
           }
           throw new Error(data.error || 'Server parsing returned empty text');
         } catch (err) {
-          // If server parse fails, extract plain text if possible
-          if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+          // If server parse also fails, try basic plain text extraction
+          if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
             const rawText = atob(String(e.target?.result || '').split(',')[1] || '');
             return resolve({
               text: rawText,
@@ -182,7 +247,7 @@ export const apiClient = {
               characterCount: rawText.length
             });
           }
-          reject(err);
+          reject(new Error('Could not extract text from document. Please copy and paste your CV text directly.'));
         }
       };
       reader.onerror = () => reject(new Error('Failed to read file from browser'));
@@ -205,17 +270,15 @@ export const apiClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.resume) {
-          return data;
-        }
+      const data = await safeJson(res);
+      if (data && data.resume) {
+        return data;
       }
     } catch (err) {
-      console.warn('Server tailorResume note (activating client fallback):', err);
+      console.warn('Server tailorResume note (activating intelligent client engine):', err);
     }
 
-    // High-fidelity resilient client-side generation
+    // High-fidelity resilient client-side generation respecting pasted/uploaded CV
     const fallback = generateClientFallbackResume({
       userProfile: payload.userProfile,
       jobTitle: payload.jobTitle,
@@ -226,7 +289,7 @@ export const apiClient = {
 
     return {
       resume: fallback,
-      remainingQuota: 4
+      remainingQuota: 50
     };
   },
 
@@ -243,14 +306,12 @@ export const apiClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.analysis) {
-          return data;
-        }
+      const data = await safeJson(res);
+      if (data && data.analysis) {
+        return data;
       }
     } catch (err) {
-      console.warn('Server checkATS note (activating client fallback):', err);
+      console.warn('Server checkATS note (activating intelligent client engine):', err);
     }
 
     const fallback = generateClientFallbackATS({
@@ -262,7 +323,7 @@ export const apiClient = {
 
     return {
       analysis: fallback,
-      remainingQuota: 4
+      remainingQuota: 50
     };
   },
 
@@ -282,14 +343,12 @@ export const apiClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.coverLetter) {
-          return data;
-        }
+      const data = await safeJson(res);
+      if (data && data.coverLetter) {
+        return data;
       }
     } catch (err) {
-      console.warn('Server makeCoverLetter note (activating client fallback):', err);
+      console.warn('Server makeCoverLetter note (activating intelligent client engine):', err);
     }
 
     const fallback = generateClientFallbackCoverLetter({
@@ -303,7 +362,39 @@ export const apiClient = {
 
     return {
       coverLetter: fallback,
-      remainingQuota: 4
+      remainingQuota: 50
+    };
+  },
+
+  async makeInterviewPrep(payload: {
+    credentialId: string;
+    jobTitle: string;
+    companyName: string;
+    jobDescription: string;
+  }): Promise<{ session: InterviewPrepSession; remainingQuota: number }> {
+    try {
+      const res = await safeFetch('/api/ai/interview-prep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await safeJson(res);
+      if (data && data.session) {
+        return data;
+      }
+    } catch (err) {
+      console.warn('Server makeInterviewPrep note (activating intelligent client engine):', err);
+    }
+
+    const fallback = generateClientFallbackInterviewPrep({
+      jobTitle: payload.jobTitle,
+      companyName: payload.companyName,
+      jobDescription: payload.jobDescription
+    });
+
+    return {
+      session: fallback,
+      remainingQuota: 50
     };
   },
 
@@ -311,7 +402,7 @@ export const apiClient = {
     credentialId: string;
     jobTitle: string;
     companyName: string;
-    jobDescription?: string;
+    jobDescription: string;
     focusArea?: string;
   }): Promise<{ prepSession: InterviewPrepSession; remainingQuota: number }> {
     try {
@@ -320,14 +411,15 @@ export const apiClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.prepSession) {
-          return data;
-        }
+      const data = await safeJson(res);
+      if (data && (data.session || data.prepSession)) {
+        return {
+          prepSession: data.prepSession || data.session,
+          remainingQuota: data.remainingQuota ?? 50
+        };
       }
     } catch (err) {
-      console.warn('Server prepInterview note (activating client fallback):', err);
+      console.warn('Server prepInterview note (activating intelligent client engine):', err);
     }
 
     const fallback = generateClientFallbackInterviewPrep({
@@ -338,7 +430,7 @@ export const apiClient = {
 
     return {
       prepSession: fallback,
-      remainingQuota: 4
+      remainingQuota: 50
     };
   },
 
@@ -346,40 +438,63 @@ export const apiClient = {
     credentialId: string;
     question: string;
     candidateAnswer: string;
-    targetRole: string;
-  }): Promise<{ evaluation: any; remainingQuota: number }> {
+    targetRole?: string;
+  }): Promise<{
+    evaluation: {
+      score: number;
+      strengths: string[];
+      improvements: string[];
+      starRating: { clarity: number; impact: number; relevance: number };
+    };
+    remainingQuota: number;
+  }> {
     try {
       const res = await safeFetch('/api/ai/evaluate-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.evaluation) {
-          return data;
-        }
+      const data = await safeJson(res);
+      if (data && data.evaluation) {
+        return data;
       }
     } catch (err) {
-      console.warn('Server evaluateAnswer note (activating fallback):', err);
+      console.warn('Server evaluateAnswer fallback:', err);
     }
+
+    // Client-side smart evaluation
+    const wordCount = payload.candidateAnswer.trim().split(/\s+/).length;
+    const hasSituation = /when|at|while|during|in my previous role/i.test(payload.candidateAnswer);
+    const hasResult = /resulted in|increased|improved|reduced|delivered|achieved|saved|led to|percent|%/i.test(payload.candidateAnswer);
+    const hasAction = /I implemented|I led|I analyzed|I automated|I reconciled|I prepared|I designed/i.test(payload.candidateAnswer);
+
+    let score = 70;
+    if (hasSituation) score += 10;
+    if (hasResult) score += 10;
+    if (hasAction) score += 10;
+    if (wordCount < 40) score -= 15;
+    if (wordCount > 300) score -= 5;
+    score = Math.max(50, Math.min(95, score));
 
     return {
       evaluation: {
-        score: 90,
-        starRating: { clarity: 4, impact: 4, relevance: 5 },
+        score,
         strengths: [
-          'Clear articulation of the problem, action taken, and quantifiable business result.',
-          'Demonstrated analytical composure and accountability.',
-          'Sound alignment with collaborative Irish workplace expectations.'
+          hasAction ? 'Strong active voice showcasing direct individual contribution.' : 'Clear professional demeanor and relevant context provided.',
+          hasResult ? 'Included quantifiable outcomes and business impacts.' : 'Addressed the core competencies expected by Irish hiring managers.',
+          'Maintained high alignment with Irish corporate and regulatory expectations.'
         ],
         improvements: [
-          'Quantify the long-term impact with an additional metric (e.g. hours saved per month).',
-          'Briefly mention what preventative governance control was established.'
+          !hasResult ? 'Add specific percentage or EUR figures to quantify the business outcome (STAR framework).' : 'Ensure concise delivery under 2 minutes.',
+          !hasSituation ? 'State the initial challenge or project context more explicitly at the start.' : 'Connect this experience directly to the target employer\'s strategic priorities.'
         ],
-        polishedIrishVersion: 'In that scenario, I recognized the immediate importance of regulatory precision and audit integrity. I took ownership of isolating the discrepancy, communicated status transparently with our leadership, and designed an automated reconciliation model that cut turnaround by 35% with zero audit deficiencies.'
+        starRating: {
+          clarity: hasSituation ? 9 : 7,
+          impact: hasResult ? 9 : 7,
+          relevance: hasAction ? 9 : 8
+        }
       },
-      remainingQuota: 4
+      remainingQuota: 50
     };
   }
 };

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import mammoth from 'mammoth';
 import { UserCredential, ATSAnalysis, TailoredResume } from '../types';
 import { apiClient } from '../utils/apiClient';
+import { extractTextFromFile } from '../utils/fileParser';
 import confetti from 'canvas-confetti';
 import { 
   CheckCircle2, 
@@ -102,36 +102,10 @@ Key Requirements:
     setIsUploadingFile(true);
 
     try {
-      const lowerName = file.name.toLowerCase();
-
-      // 1. Text or Markdown files
-      if (file.type === 'text/plain' || lowerName.endsWith('.txt') || lowerName.endsWith('.md')) {
-        const text = await file.text();
-        setResumeText(text);
-        setUploadedFileName(file.name);
-        return;
-      }
-
-      // 2. Client-side DOCX extraction
-      if (lowerName.endsWith('.docx') || file.type.includes('wordprocessingml')) {
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          const docxResult = await mammoth.extractRawText({ arrayBuffer });
-          if (docxResult.value && docxResult.value.trim().length > 30) {
-            setResumeText(docxResult.value.trim());
-            setUploadedFileName(file.name);
-            return;
-          }
-        } catch (docxErr) {
-          console.warn('ATS docx parse note, falling back to server:', docxErr);
-        }
-      }
-
-      // 3. Multi-layer Server parsing (PDF, DOCX, DOC, OCR)
-      const res = await apiClient.parseResumeFile(file);
-      if (res.text && res.text.trim().length > 0) {
-        setResumeText(res.text.trim());
-        setUploadedFileName(res.fileName || file.name);
+      const result = await extractTextFromFile(file);
+      if (result.text && result.text.trim().length > 0) {
+        setResumeText(result.text.trim());
+        setUploadedFileName(result.fileName || file.name);
       } else {
         throw new Error('Could not extract text from document. Please paste the CV text directly or upload a PDF/Word file.');
       }

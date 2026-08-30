@@ -224,20 +224,30 @@ const DEFAULT_SAMPLE_APPLICATIONS: JobApplication[] = [
   }
 ];
 
+function safeParseLocalStorage<T>(key: string, fallback: T): T {
+  try {
+    const saved = localStorage.getItem(key);
+    if (!saved) return fallback;
+    const trimmed = saved.trim();
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+      return fallback;
+    }
+    return JSON.parse(trimmed) as T;
+  } catch (e) {
+    console.warn(`Local storage recovery for ${key}:`, e);
+    return fallback;
+  }
+}
+
 export default function App() {
   // Credentials (max 4 allowed login credentials)
   const [credentials, setCredentials] = useState<UserCredential[]>(() => {
-    const saved = localStorage.getItem('eire_credentials');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return parsed.map((c: any) => ({
-          ...c,
-          visaStatus: (c.visaStatus && (c.visaStatus.includes('Critical') || c.visaStatus.includes('CSEP'))) ? '' : c.visaStatus
-        }));
-      } catch (e) {
-        console.error(e);
-      }
+    const parsed = safeParseLocalStorage<UserCredential[]>('eire_credentials', INITIAL_USER_CREDENTIALS);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((c: any) => ({
+        ...c,
+        visaStatus: (c.visaStatus && (c.visaStatus.includes('Critical') || c.visaStatus.includes('CSEP'))) ? '' : c.visaStatus
+      }));
     }
     return INITIAL_USER_CREDENTIALS;
   });
@@ -254,75 +264,39 @@ export default function App() {
 
   // Persistent stored items
   const [savedResumes, setSavedResumes] = useState<TailoredResume[]>(() => {
-    const saved = localStorage.getItem('eire_resumes');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return parsed.map((r: any) => {
-          if (r.personalInfo?.workEligibility && (r.personalInfo.workEligibility.includes('Critical') || r.personalInfo.workEligibility.includes('CSEP'))) {
-            return {
-              ...r,
-              personalInfo: {
-                ...r.personalInfo,
-                workEligibility: ''
-              }
-            };
-          }
-          return r;
-        });
-      } catch (e) {
-        console.error(e);
-      }
+    const parsed = safeParseLocalStorage<TailoredResume[]>('eire_resumes', [DEFAULT_SAMPLE_RESUME]);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((r: any) => {
+        if (r.personalInfo?.workEligibility && (r.personalInfo.workEligibility.includes('Critical') || r.personalInfo.workEligibility.includes('CSEP'))) {
+          return {
+            ...r,
+            personalInfo: {
+              ...r.personalInfo,
+              workEligibility: ''
+            }
+          };
+        }
+        return r;
+      });
     }
     return [DEFAULT_SAMPLE_RESUME];
   });
 
   const [savedATSAnalyses, setSavedATSAnalyses] = useState<ATSAnalysis[]>(() => {
-    const saved = localStorage.getItem('eire_ats_analyses');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return [];
+    return safeParseLocalStorage<ATSAnalysis[]>('eire_ats_analyses', []);
   });
 
   const [savedCoverLetters, setSavedCoverLetters] = useState<TailoredCoverLetter[]>(() => {
-    const saved = localStorage.getItem('eire_cover_letters');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return [];
+    return safeParseLocalStorage<TailoredCoverLetter[]>('eire_cover_letters', []);
   });
 
   const [savedPreps, setSavedPreps] = useState<InterviewPrepSession[]>(() => {
-    const saved = localStorage.getItem('eire_preps');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return [];
+    return safeParseLocalStorage<InterviewPrepSession[]>('eire_preps', []);
   });
 
   const [jobApplications, setJobApplications] = useState<JobApplication[]>(() => {
-    const saved = localStorage.getItem('eire_job_apps');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return DEFAULT_SAMPLE_APPLICATIONS;
+    const parsed = safeParseLocalStorage<JobApplication[]>('eire_job_apps', DEFAULT_SAMPLE_APPLICATIONS);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_SAMPLE_APPLICATIONS;
   });
 
   // Cross-tool pipeline transfers

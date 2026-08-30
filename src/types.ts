@@ -7,6 +7,8 @@ export type IrishStampVisa =
   | 'UK/CTA Citizen'
   | string;
 
+export type IrishVisaStatus = IrishStampVisa;
+
 export type IrishLocation = 
   | 'Dublin'
   | 'Cork'
