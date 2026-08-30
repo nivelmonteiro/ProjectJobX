@@ -20,125 +20,206 @@ import { JobTracker } from './components/JobTracker';
 import { IrishMarketExplorer } from './components/IrishMarketExplorer';
 
 const DEFAULT_SAMPLE_RESUME: TailoredResume = {
-  id: 'resume-sample-1',
-  title: 'Senior Full Stack Developer - Stripe Ireland',
-  targetRole: 'Senior Full Stack Developer',
-  targetCompany: 'Stripe Ireland',
+  id: 'resume-nivel-1',
+  title: 'Financial Analyst / Fund Accountant - Dublin IFSC',
+  targetRole: 'Financial Analyst / Fund Accountant',
+  targetCompany: 'State Street Ireland / Bank of Ireland',
   createdAt: new Date().toISOString(),
   personalInfo: {
-    fullName: 'Aoife Murphy',
-    email: 'aoife.murphy.irl@eirecareers.ie',
-    phone: '+353 87 123 4567',
-    location: 'Dublin 2, Ireland',
+    fullName: 'Nivel Monteiro',
+    email: 'nivelmonteiro@outlook.com',
+    phone: '+353 89 984 7924',
+    location: 'Dublin, Ireland',
     eircode: 'D02 X285',
-    workEligibility: 'Stamp 4 / EU Citizen (Full Work Rights in Ireland)',
-    linkedin: 'linkedin.com/in/aoifemurphy-dev',
-    github: 'github.com/aoifemurphy'
+    workEligibility: 'Stamp 1G',
+    linkedin: 'https://linkedin.com/in/nivelmonteiro',
+    github: ''
   },
-  professionalSummary: 'Accomplished Senior Full Stack Engineer with 5+ years building distributed European payment rails and high-throughput web applications in Dublin Silicon Docks. Proven track record reducing API latency by 45% and architecting GDPR-compliant microservices.',
+  professionalSummary: 'Strategic and detail-oriented Financial Analyst & Fund Accounting Specialist with over 8+ years of progressive experience spanning corporate finance, Net Asset Value (NAV) computation, mutual fund valuations, cash flow forecasting, and statutory audit governance. Holds an MBA in Finance from Dublin Business School (NFQ Level 9) and valid Irish Stamp 1G work authorization with immediate right to work in Ireland without sponsorship. Proficient in SAP FICO, Advanced MS Excel financial modeling, and leading cross-functional audit readiness for Irish IFSC and multinational institutions.',
   skills: {
-    technical: ['TypeScript', 'React', 'Node.js', 'Next.js', 'PostgreSQL', 'Redis', 'Docker', 'AWS (ECS, Lambda, RDS)'],
-    domain: ['Payment Systems', 'Distributed Architecture', 'REST & GraphQL APIs', 'GDPR & Irish Data Privacy'],
-    soft: ['Technical Leadership', 'Cross-Functional Collaboration', 'Agile/Scrum', 'Mentorship'],
-    tools: ['Git', 'Datadog', 'Jira', 'Terraform', 'Playwright', 'Jest']
+    technical: [
+      'Financial Modeling (DCF / LBO)',
+      'NAV Calculation & Asset Pricing',
+      'Cash Flow Forecasting & Budget Variance',
+      'NAV Accounting & Reconciliations',
+      'Advanced MS Excel (XLOOKUP, Pivot, Macros)',
+      'Power BI & Executive KPI Dashboards',
+      'SAP FICO',
+      'QuickBooks',
+      'Tally Prime',
+      'SQL'
+    ],
+    domain: [
+      'Fund Accounting & Mutual Fund Valuations',
+      'KYC / CKYC Customer Due Diligence',
+      'AML Protocols & Sanctions Screening',
+      'Statutory Audit Governance',
+      'GAAP & IFRS Financial Reporting',
+      'Direct & Indirect Taxation (Irish Tax / VAT / TDS)',
+      'Balance Sheet Reconciliation',
+      'Liquidity & Working Capital Management',
+      'Internal Financial Controls'
+    ],
+    soft: [
+      'Executive Stakeholder Reporting',
+      'Analytical Problem Solving',
+      'Cross-Functional Team Collaboration',
+      'Audit Coordination & Negotiation',
+      'Regulatory Communication'
+    ],
+    tools: [
+      'SAP ERP',
+      'Power BI',
+      'QuickBooks',
+      'MS Office 365',
+      'Alteryx',
+      'Tableau',
+      'Jira'
+    ]
   },
   workExperiences: [
     {
       id: 'exp-1',
-      role: 'Senior Software Engineer',
-      company: 'Workday Ireland',
-      location: 'Dublin, Ireland',
-      startDate: '2022',
+      role: 'Financial Analyst (Freelance / Advisory)',
+      company: 'Finkasturi Technologies / Strategic Advisory',
+      location: 'Corporate Advisory, Financial Modeling & Strategy',
+      startDate: 'Nov 2024',
       endDate: 'Present',
       isCurrent: true,
       highlights: [
-        'Architected high-resiliency microservices processing 4M+ daily financial transactions with 99.99% uptime.',
-        'Migrated legacy monolithic UI to modern React & TypeScript, slashing initial page load times by 52%.',
-        'Implemented strict European data residency protocols in compliance with Irish Data Protection Commission guidelines.'
+        'Spearhead full-cycle corporate financial modeling, multi-scenario forecasting, and budget variance analyses to support strategic executive decisions.',
+        'Execute end-to-end KYC/AML customer due diligence, sanctions screening, and financial crime risk profiling for international corporate client portfolios.',
+        'Engineer dynamic KPI & liquidity dashboards in Advanced MS Excel and Power BI, tracking operating burn rates, cash flow, and margin performance.',
+        'Develop DCF valuation models, sensitivity analyses, and investment memoranda for board presentations and investor due diligence review.',
+        'Ensure rigorous compliance with international reporting standards, statutory frameworks, and data protection guidelines.'
       ]
     },
     {
       id: 'exp-2',
-      role: 'Full Stack Engineer',
-      company: 'Version 1',
-      location: 'Dublin / Remote Ireland',
-      startDate: '2020',
-      endDate: '2022',
+      role: 'Accountant & Financial Analyst',
+      company: 'American Eye & Retina Care Pvt. Ltd.',
+      location: 'Healthcare Financial Operations & Multi-Branch Accounting',
+      startDate: 'Aug 2022',
+      endDate: 'Aug 2023',
       isCurrent: false,
       highlights: [
-        'Built enterprise cloud platforms on AWS using Node.js and PostgreSQL for public & private sector Irish clients.',
-        'Championed automated CI/CD pipelines reducing deployment failure rates by 35%.'
+        'Directed full-cycle financial reporting, ledger maintenance, and final accounts finalization under GAAP/IFRS standards with 100% statutory compliance.',
+        'Streamlined accounts reconciliation and billing workflows, reducing monthly close turnaround time by 20% while eliminating reporting bottlenecks.',
+        'Led cross-departmental internal audits and balance sheet reconciliations, identifying cost anomalies and enhancing working capital efficiency.',
+        'Designed structured cash flow forecasting models that improved short-term liquidity management and vendor settlement cycles.'
+      ]
+    },
+    {
+      id: 'exp-3',
+      role: 'Accounts & Finance Executive',
+      company: 'RNS & Associates (Chartered Accountants & Tax Practitioners)',
+      location: 'Statutory Audit, Direct & Indirect Taxation, Corporate Advisory',
+      startDate: 'Aug 2017',
+      endDate: 'Apr 2019',
+      isCurrent: false,
+      highlights: [
+        'Executed statutory audits, trial balance reconciliations, and financial statement preparations for corporate and SME clients across multiple industries.',
+        'Managed direct and indirect tax compliance (GST, Income Tax, Sales Tax), ensuring 100% on-time statutory submissions with zero penalties.',
+        'Automated ledger reconciliation and reporting workflows via Advanced Excel, reducing data reconciliation errors by 15%.',
+        'Advised client executives on tax planning strategies, compliance documentation, and financial governance frameworks.'
+      ]
+    },
+    {
+      id: 'exp-4',
+      role: 'Accounts & Finance Officer',
+      company: 'Bombay Oxygen Corporation Ltd. / Bombay Investment Co. Pvt. Ltd.',
+      location: 'Treasury, Mutual Fund Accounting, NAV Computation & Statutory Filings',
+      startDate: 'Nov 2014',
+      endDate: 'Aug 2017',
+      isCurrent: false,
+      highlights: [
+        'Managed mutual fund accounting, daily Net Asset Value (NAV) computation, and asset reconciliation under SEBI regulatory guidelines.',
+        'Prepared Tax Deducted at Source (TDS) schedules, statutory service tax filings, and documentation for quarterly and annual external audits.',
+        'Coordinated liquidity management and treasury transactions with banking institutions and asset management houses.',
+        'Negotiated corporate insurance renewals, reducing annual premium costs by 12% while expanding policy coverage.'
       ]
     }
   ],
   education: [
     {
       id: 'edu-1',
-      degree: 'M.Sc. in Computer Science',
-      institution: 'University College Dublin (UCD)',
+      degree: 'Master of Business Administration (MBA) – Finance',
+      institution: 'Dublin Business School (DBS)',
       location: 'Dublin, Ireland',
-      year: '2020',
-      nfqLevel: 'NFQ Level 9 (Masters)',
-      gradeOrHonours: 'First Class Honours (1:1)'
+      year: '2023 – 2025',
+      gradeOrHonours: 'Honours Graduate (NFQ Level 9 Equivalent)'
+    },
+    {
+      id: 'edu-2',
+      degree: 'Bachelor of Business Management (BBM) – Accounts & Finance',
+      institution: 'St. Aloysius College, Mangalore University',
+      location: 'Mangalore, India',
+      year: '2011 – 2014',
+      gradeOrHonours: 'First Class Honours (NFQ Level 8 Equivalent)'
     }
   ],
   certifications: [
-    'AWS Certified Solutions Architect – Associate',
-    'Certified ScrumMaster (CSM)'
+    'Diploma in Irish Taxation – University College Dublin (UCD Professional Academy)',
+    'Certified Mutual Fund Distributor – National Institute of Securities Markets (NISM), India',
+    'SAP Certified – ERP Financials (FICO, MM, SD & PP Modules)',
+    'Diploma in Investment Management & Portfolio Strategy',
+    'Advanced Financial Modeling & Valuation – QuickBooks & Advanced MS Excel Certified',
+    'Irish GDPR & Data Protection Regulations Compliance',
+    'AML / KYC & Financial Crime Due Diligence Frameworks'
   ],
   keyAchievements: [
-    'Awarded Top Technical Innovator at Workday Ireland 2024.',
-    'Mentored 6 junior engineers and interns from Trinity College Dublin and DCU.'
-  ],
-  irishMarketNotes: 'Compliant with Irish equality standards: No photo, 2-page max, Eircode included, explicit right-to-work header.'
+    'Tailored for Irish financial institutions and multinationals adhering to the Irish 2-page CV gold standard.',
+    'Features 8+ years of progressive financial analysis, statutory audit, KYC/AML risk assessment, and regulatory compliance experience.',
+    'Fully validated for high parse rate across Workday, Taleo, Greenhouse, and Lever ATS platforms.'
+  ]
 };
 
 const DEFAULT_SAMPLE_APPLICATIONS: JobApplication[] = [
   {
     id: 'app-1',
-    jobTitle: 'Senior Full Stack Engineer',
-    company: 'Stripe Ireland',
-    location: 'Dublin (Silicon Docks / City)',
-    salaryMin: 95000,
-    salaryMax: 120000,
+    jobTitle: 'Senior Fund Accountant (NAV Valuation)',
+    company: 'State Street International Ireland',
+    location: 'Dublin',
+    salaryMin: 58000,
+    salaryMax: 72000,
     currency: 'EUR',
     status: '1st Round Interview',
-    visaRequirement: 'Stamp 4 (Full Work Rights)',
-    jobUrl: 'https://stripe.com/jobs',
+    visaRequirement: 'Stamp 1G',
+    jobUrl: 'https://statestreet.com/careers',
     dateApplied: '2025-02-15',
     nextFollowUpDate: '2025-03-02',
-    contactPerson: 'Talent Acquisition Team',
-    notes: 'Phone screen completed. Technical system design round scheduled with hiring manager.',
+    contactPerson: 'Fund Administration Hiring Team',
+    notes: 'HR phone screen completed. Technical assessment on NAV reconciliations & pricing scheduled.',
     updatedAt: new Date().toISOString()
   },
   {
     id: 'app-2',
-    jobTitle: 'Cloud Infrastructure Specialist',
-    company: 'Pfizer Ireland',
-    location: 'Cork',
-    salaryMin: 70000,
-    salaryMax: 88000,
+    jobTitle: 'Financial Analyst (FP&A & Variance Modeling)',
+    company: 'Bank of Ireland / Stripe',
+    location: 'Dublin',
+    salaryMin: 60000,
+    salaryMax: 75000,
     currency: 'EUR',
     status: 'Applied',
-    visaRequirement: 'Stamp 1G (Third Level Graduate)',
-    jobUrl: 'https://pfizer.com/careers',
+    visaRequirement: 'Stamp 1G',
+    jobUrl: 'https://bankofireland.com/careers',
     dateApplied: '2025-02-20',
-    notes: 'Submitted tailored Irish CV and motivation statement regarding Cork bio-tech operations.',
+    notes: 'Submitted tailored Irish CV focusing on 8+ years corporate financial analysis and MBA qualification.',
     updatedAt: new Date().toISOString()
   },
   {
     id: 'app-3',
-    jobTitle: 'Lead Product Manager',
-    company: 'Revolut Ireland',
-    location: 'Remote (Ireland-wide)',
-    salaryMin: 90000,
-    salaryMax: 115000,
+    jobTitle: 'Fund Accounting & Valuation Specialist',
+    company: 'BNY Mellon Ireland',
+    location: 'Dublin',
+    salaryMin: 55000,
+    salaryMax: 70000,
     currency: 'EUR',
     status: 'Final Interview / Assessment',
-    visaRequirement: 'EU/EEA/Irish Citizen',
-    jobUrl: 'https://revolut.com',
+    visaRequirement: 'Stamp 1G',
+    jobUrl: 'https://bnymellon.com',
     dateApplied: '2025-02-08',
-    notes: 'Presentation on European SME credit expansion completed.',
+    notes: 'Completed case study on multi-asset mutual fund portfolio reconciliation under CBI regulations.',
     updatedAt: new Date().toISOString()
   }
 ];
@@ -149,7 +230,11 @@ export default function App() {
     const saved = localStorage.getItem('eire_credentials');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return parsed.map((c: any) => ({
+          ...c,
+          visaStatus: (c.visaStatus && (c.visaStatus.includes('Critical') || c.visaStatus.includes('CSEP'))) ? '' : c.visaStatus
+        }));
       } catch (e) {
         console.error(e);
       }
@@ -172,7 +257,19 @@ export default function App() {
     const saved = localStorage.getItem('eire_resumes');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return parsed.map((r: any) => {
+          if (r.personalInfo?.workEligibility && (r.personalInfo.workEligibility.includes('Critical') || r.personalInfo.workEligibility.includes('CSEP'))) {
+            return {
+              ...r,
+              personalInfo: {
+                ...r.personalInfo,
+                workEligibility: ''
+              }
+            };
+          }
+          return r;
+        });
       } catch (e) {
         console.error(e);
       }

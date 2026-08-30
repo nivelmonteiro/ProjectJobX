@@ -33,9 +33,9 @@ export const InterviewPrep: React.FC<InterviewPrepProps> = ({
   savedPreps,
   onSavePrep
 }) => {
-  const [jobTitle, setJobTitle] = useState('Senior Full Stack Developer');
-  const [companyName, setCompanyName] = useState('Stripe Ireland');
-  const [jobDescription, setJobDescription] = useState('Senior role scaling European payments and microservices in Dublin.');
+  const [jobTitle, setJobTitle] = useState('Financial Analyst (FP&A & Corporate Finance)');
+  const [companyName, setCompanyName] = useState('Bank of Ireland / Stripe Ireland');
+  const [jobDescription, setJobDescription] = useState('Financial Analyst role in Dublin focusing on corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive KPI reporting.');
   const [focusArea, setFocusArea] = useState('Competency STAR Framework & Irish Workplace Culture');
   
   const [isGenerating, setIsGenerating] = useState(false);
@@ -142,6 +142,50 @@ export const InterviewPrep: React.FC<InterviewPrepProps> = ({
         <div className="lg:col-span-4 space-y-4">
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
             
+            {/* Quick Target Presets */}
+            <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/80 space-y-1.5">
+              <span className="text-[11px] font-bold text-slate-700 block uppercase tracking-wider">Quick Target Presets:</span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobTitle('Financial Analyst (FP&A & Corporate Finance)');
+                    setCompanyName('Bank of Ireland / Stripe Ireland');
+                    setJobDescription('Financial Analyst role in Dublin focusing on corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive KPI reporting.');
+                  }}
+                  className={`text-left p-2 rounded-lg border text-xs transition-all ${
+                    jobTitle.toLowerCase().includes('financial analyst')
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1">
+                    <span>📊</span>
+                    <span>Financial Analyst</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobTitle('Fund Accountant (NAV & Portfolio Valuation)');
+                    setCompanyName('State Street Ireland / BNY Mellon');
+                    setJobDescription('Fund Accountant role in Dublin IFSC focusing on daily Net Asset Value (NAV) computation, portfolio valuations, cash and asset reconciliations, and CBI statutory audit preparation.');
+                  }}
+                  className={`text-left p-2 rounded-lg border text-xs transition-all ${
+                    jobTitle.toLowerCase().includes('fund')
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1">
+                    <span>🏛️</span>
+                    <span>Fund Accountant</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div>
               <label className="text-xs font-semibold text-slate-700 block mb-1">Target Role</label>
               <input

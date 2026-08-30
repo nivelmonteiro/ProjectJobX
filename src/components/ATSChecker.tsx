@@ -43,22 +43,47 @@ export const ATSChecker: React.FC<ATSCheckerProps> = ({
 }) => {
   const [resumeText, setResumeText] = useState(
     initialResumeText ||
-    `Aoife Murphy\nSenior Full Stack Developer (React / Node / AWS)\nEligible to work in Ireland (Stamp 4 / EU Citizen)\n+353 87 123 4567 | aoife.murphy.irl@eirecareers.ie | Dublin 2, Eircode: D02 X285\n\nSummary:\nHigh-impact Software Engineer with 5+ years experience delivering resilient cloud microservices and scalable web applications in Dublin tech hubs.\n\nSkills:\nTypeScript, React, Node.js, AWS Cloud, PostgreSQL, Docker, REST APIs, Microservices, Agile.\n\nExperience:\nLead Engineer at Stripe / Irish Tech Hub (2023 - Present):\n- Built high-throughput transaction pipelines with 99.99% availability.\n- Reduced API p95 latency from 320ms to 85ms using Redis caching.\n- Collaborated with Dublin team to meet GDPR and Irish data security standards.\n\nEducation:\nM.Sc. Computer Science - University College Dublin (NFQ Level 9, 1:1 Honours)`
+    `NIVEL MONTEIRO
+STRATEGIC FINANCE & REGULATORY COMPLIANCE ANALYST
+Dublin, Ireland | +353 89 984 7924 | nivelmonteiro@outlook.com | Eircode: D02 X285 | LinkedIn: https://linkedin.com/in/nivelmonteiro
+Work Authorization: Stamp 1G (Full legal entitlement to work in Ireland)
+
+Summary:
+Strategic Financial Analyst & Regulatory Compliance Specialist with over 8+ years progressive experience spanning corporate finance, KYC/AML due diligence, sanctions screening, financial statement finalization, and statutory audit operations. Holds an MBA in Finance from Dublin Business School (NFQ Level 9) and valid Irish Stamp 1G work authorization with immediate right to work in Ireland without sponsorship.
+
+Skills:
+Financial Modeling (DCF/LBO), KYC / AML Due Diligence, Sanctions Screening, Statutory Audit, GAAP & IFRS Reporting, Irish Taxation, Advanced MS Excel, Power BI, SAP FICO, QuickBooks, SQL.
+
+Experience:
+1. Financial Analyst (Freelance / Advisory) - Finkasturi Technologies (11/2024 - Present, Dublin Liaison):
+- Lead full-cycle corporate financial modeling, cash flow forecasting, and budget variance analyses to support strategic executive decisions.
+- Execute end-to-end KYC/AML customer due diligence, sanctions screening, and financial crime risk profiling for international corporate accounts.
+- Develop dynamic KPI & liquidity dashboards in Advanced MS Excel and Power BI, tracking operating burn rates and margin performance.
+
+2. Accountant & Financial Analyst - American Eye & Retina Care Pvt. Ltd. (08/2022 - 08/2023):
+- Directed full-cycle financial reporting, ledger maintenance, and final accounts finalization under GAAP/IFRS standards with 100% compliance.
+- Streamlined accounts reconciliation and billing workflows, reducing monthly close turnaround time by 20%.
+- Led cross-departmental internal audits and balance sheet reconciliations, enhancing working capital efficiency.
+
+Education:
+Master of Business Administration (MBA) – Finance | Dublin Business School (DBS), Dublin (2023 – 2025, NFQ Level 9)
+Bachelor of Business Management (BBM) – Accounts & Finance | St. Aloysius College, Mangalore University (2011 – 2014, NFQ Level 8)`
   );
 
   const [jobDescription, setJobDescription] = useState(
     initialJobDesc ||
-    `Senior Full Stack Engineer (Dublin / Hybrid)
-We are seeking a Senior Full Stack Engineer to lead our European merchant checkout systems.
+    `Financial Analyst & Fund Accountant (Dublin / Hybrid)
+We are seeking an experienced Financial Analyst / Fund Accountant to support financial modeling, budgeting, and fund accounting operations in Dublin.
 Key Requirements:
-- 5+ years experience in TypeScript, React, and Node.js
-- Cloud infrastructure experience with AWS, Docker, Kubernetes, and Terraform
-- Strong understanding of CI/CD, unit testing with Playwright/Jest, and Datadog observability
-- Excellent communication skills, Agile mindset, and knowledge of GDPR European privacy standards.`
+- 5+ years experience in corporate finance, financial analysis, NAV calculation, fund accounting, and statutory audit governance
+- Proven capability in cash flow forecasting, variance analysis, balance sheet reconciliations, and portfolio valuations
+- Proficiency in Advanced MS Excel (Macros, XLOOKUP), Power BI, and financial ERP systems (SAP FICO, QuickBooks)
+- Master's (NFQ Level 9) or Bachelor's (NFQ Level 8) degree in Finance, Accounting, or related business discipline
+- Immediate legal eligibility to work in Ireland (Stamp 1G / Stamp 4 / EU Citizen)`
   );
 
-  const [jobTitle, setJobTitle] = useState('Senior Full Stack Engineer');
-  const [companyName, setCompanyName] = useState('Stripe Ireland');
+  const [jobTitle, setJobTitle] = useState('Financial Analyst (FP&A & Corporate Finance)');
+  const [companyName, setCompanyName] = useState('Bank of Ireland / Stripe Ireland');
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedSummary, setCopiedSummary] = useState(false);
@@ -204,6 +229,62 @@ Key Requirements:
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
             
+            {/* Quick Target Presets */}
+            <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/80 space-y-1.5">
+              <span className="text-[11px] font-bold text-slate-700 block uppercase tracking-wider">Quick Target Presets:</span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobTitle('Financial Analyst (FP&A & Corporate Finance)');
+                    setCompanyName('Bank of Ireland / Stripe Ireland');
+                    setJobDescription(`Financial Analyst & FP&A Specialist (Dublin / Hybrid)
+We are seeking an experienced Financial Analyst to lead financial modeling, budgeting, and performance analytics.
+Key Requirements:
+- 5+ years experience in corporate finance, financial modeling (DCF/LBO), and cash flow forecasting
+- Advanced MS Excel (XLOOKUP, Pivot, financial models), Power BI, and SAP ERP
+- Master's (NFQ Level 9) or Bachelor's (NFQ Level 8) in Finance or Accounting
+- Full-time work eligibility in Ireland (Stamp 1G / Stamp 4 / EU Citizen)`);
+                  }}
+                  className={`text-left p-2 rounded-lg border text-xs transition-all ${
+                    jobTitle.toLowerCase().includes('financial analyst')
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1">
+                    <span>📊</span>
+                    <span>Financial Analyst</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobTitle('Fund Accountant (NAV & Portfolio Valuation)');
+                    setCompanyName('State Street Ireland / BNY Mellon');
+                    setJobDescription(`Fund Accountant (NAV & Asset Valuations - Dublin IFSC)
+We are seeking a Fund Accountant to manage Net Asset Value (NAV) computations and mutual fund reconciliations.
+Key Requirements:
+- 5+ years experience in fund accounting, NAV calculations, portfolio pricing, and custody reconciliations
+- Strong understanding of UCITS, AIFMD, and Central Bank of Ireland statutory reporting
+- Advanced Excel and financial reporting systems
+- Master's or Bachelor's degree in Finance/Accounting and Stamp 1G/Stamp 4 work authorization`);
+                  }}
+                  className={`text-left p-2 rounded-lg border text-xs transition-all ${
+                    jobTitle.toLowerCase().includes('fund')
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1">
+                    <span>🏛️</span>
+                    <span>Fund Accountant</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">Target Job Title</label>

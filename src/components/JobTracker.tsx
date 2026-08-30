@@ -39,25 +39,26 @@ const STATUS_COLUMNS: { id: JobStatus; label: string; color: string }[] = [
 ];
 
 const IRISH_LOCATIONS: IrishLocation[] = [
-  'Dublin (Silicon Docks / City)',
-  'Dublin (County / Suburbs)',
+  'Dublin',
   'Cork',
   'Galway',
   'Limerick',
   'Waterford',
-  'Shannon / Midwest',
-  'Belfast / Cross-Border',
-  'Remote (Ireland-wide)',
-  'Hybrid (Dublin/Regional)'
+  'Kilkenny',
+  'Sligo',
+  'Drogheda',
+  'Dundalk',
+  'Athlone',
+  'Wexford'
 ];
 
 const IRISH_STAMPS: IrishStampVisa[] = [
-  'EU/EEA/Irish Citizen',
-  'Stamp 4 (Full Work Rights)',
-  'Stamp 1G (Third Level Graduate)',
-  'Stamp 1 (Employment Permit Required)',
-  'Critical Skills (CSEP Eligible)',
-  'UK/Common Travel Area'
+  'Stamp 1G',
+  'Stamp 4',
+  'Stamp 1',
+  'Stamp 2',
+  'EU/EEA Citizen',
+  'UK/CTA Citizen'
 ];
 
 export const JobTracker: React.FC<JobTrackerProps> = ({
@@ -92,7 +93,7 @@ export const JobTracker: React.FC<JobTrackerProps> = ({
       id: `job-app-${Date.now()}`,
       jobTitle: '',
       company: '',
-      location: 'Dublin (Silicon Docks / City)',
+      location: 'Dublin',
       currency: 'EUR',
       salaryMin: 70000,
       salaryMax: 90000,
@@ -114,12 +115,12 @@ export const JobTracker: React.FC<JobTrackerProps> = ({
       id: editingJob.id || `job-app-${Date.now()}`,
       jobTitle: editingJob.jobTitle,
       company: editingJob.company,
-      location: (editingJob.location as IrishLocation) || 'Dublin (Silicon Docks / City)',
+      location: (editingJob.location as IrishLocation) || 'Dublin',
       currency: 'EUR',
       salaryMin: editingJob.salaryMin,
       salaryMax: editingJob.salaryMax,
       status: (editingJob.status as JobStatus) || 'Applied',
-      visaRequirement: (editingJob.visaRequirement as IrishStampVisa) || 'Stamp 4 (Full Work Rights)',
+      visaRequirement: (editingJob.visaRequirement as IrishStampVisa) || 'Stamp 4',
       jobUrl: editingJob.jobUrl,
       jobDescription: editingJob.jobDescription,
       dateApplied: editingJob.dateApplied || new Date().toISOString().split('T')[0],

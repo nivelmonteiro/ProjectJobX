@@ -12,27 +12,26 @@ interface CredentialModalProps {
 }
 
 const IRISH_LOCATIONS: IrishLocation[] = [
-  'Dublin (Silicon Docks / City)',
-  'Dublin (County / Suburbs)',
+  'Dublin',
   'Cork',
   'Galway',
   'Limerick',
   'Waterford',
-  'Shannon / Midwest',
-  'Belfast / Cross-Border',
-  'Remote (Ireland-wide)',
-  'Hybrid (Dublin/Regional)'
+  'Kilkenny',
+  'Drogheda',
+  'Dundalk',
+  'Sligo',
+  'Athlone'
 ];
 
 const IRISH_STAMPS: IrishStampVisa[] = [
-  'Stamp 1G (Third Level Graduate)',
-  'Stamp 1G (Spouse/Partner of CSEP)',
-  'Stamp 1 (Employment Permit Required)',
-  'Stamp 4 (Full Work Rights)',
-  'EU/EEA/Irish Citizen',
-  'Critical Skills (CSEP Eligible)',
-  'UK/Common Travel Area',
-  'Stamp 2 (Student - 20h/40h)'
+  '',
+  'Stamp 1G',
+  'Stamp 1',
+  'Stamp 4',
+  'Stamp 2',
+  'EU/EEA Citizen',
+  'UK/CTA Citizen'
 ];
 
 export const CredentialModal: React.FC<CredentialModalProps> = ({
@@ -222,7 +221,7 @@ export const CredentialModal: React.FC<CredentialModalProps> = ({
                       className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-hidden bg-white"
                     >
                       {IRISH_STAMPS.map((stamp) => (
-                        <option key={stamp} value={stamp}>{stamp}</option>
+                        <option key={stamp} value={stamp}>{stamp === '' ? '(Blank - None / Do not display)' : stamp}</option>
                       ))}
                     </select>
                   </div>

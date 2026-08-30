@@ -26,27 +26,80 @@ export function exportResumeToPDF(resume: TailoredResume) {
   doc.setTextColor(5, 150, 105); // Emerald-600
   doc.text(resume.targetRole, margin, y);
   
-  if (resume.personalInfo.workEligibility) {
+  const rawEligibility = (resume.personalInfo.workEligibility || '').trim();
+  const shouldDisplayEligibility = rawEligibility && 
+    !rawEligibility.toLowerCase().includes('critical') && 
+    !rawEligibility.toLowerCase().includes('csep');
+
+  if (shouldDisplayEligibility) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(71, 85, 105);
-    const eligibilityText = `[ ${resume.personalInfo.workEligibility} ]`;
+    const eligibilityText = `[ ${rawEligibility} ]`;
     doc.text(eligibilityText, pageWidth - margin, y, { align: 'right' });
   }
   y += 5;
 
-  // Contact Line: Phone | Email | Location | Eircode | LinkedIn
+  // Contact Line: Phone | Email | Location | Eircode | LinkedIn (clickable hyperlink) | GitHub
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
-  doc.setTextColor(71, 85, 105);
-  const contactParts = [
-    resume.personalInfo.phone,
-    resume.personalInfo.email,
-    resume.personalInfo.location,
-    resume.personalInfo.eircode ? `Eircode: ${resume.personalInfo.eircode}` : '',
-    resume.personalInfo.linkedin ? 'LinkedIn' : ''
-  ].filter(Boolean);
-  doc.text(contactParts.join('  •  '), margin, y);
+  
+  let curX = margin;
+  const sep = '  •  ';
+  const sepWidth = doc.getTextWidth(sep);
+
+  const drawNormalText = (text: string) => {
+    if (!text) return;
+    if (curX > margin) {
+      doc.setTextColor(148, 163, 184); // Slate-400
+      doc.text(sep, curX, y);
+      curX += sepWidth;
+    }
+    doc.setTextColor(71, 85, 105); // Slate-600
+    doc.text(text, curX, y);
+    curX += doc.getTextWidth(text);
+  };
+
+  const drawClickableLink = (label: string, rawUrl: string) => {
+    if (!label || !rawUrl) return;
+    let url = rawUrl.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
+    if (curX > margin) {
+      doc.setTextColor(148, 163, 184);
+      doc.text(sep, curX, y);
+      curX += sepWidth;
+    }
+    const linkWidth = doc.getTextWidth(label);
+    doc.setTextColor(2, 132, 199); // Sky-600 Link color
+    
+    // In jsPDF, textWithLink embeds standard PDF annotation link
+    doc.textWithLink(label, curX, y, { url });
+    
+    // Draw fine underline for PDF visual clarity & accessibility
+    doc.setDrawColor(2, 132, 199);
+    doc.setLineWidth(0.2);
+    doc.line(curX, y + 0.5, curX + linkWidth, y + 0.5);
+    
+    curX += linkWidth;
+  };
+
+  if (resume.personalInfo.phone) {
+    drawNormalText(resume.personalInfo.phone);
+  }
+  if (resume.personalInfo.email) {
+    drawNormalText(resume.personalInfo.email);
+  }
+  if (resume.personalInfo.location) {
+    drawNormalText(resume.personalInfo.location);
+  }
+  if (resume.personalInfo.eircode) {
+    drawNormalText(`Eircode: ${resume.personalInfo.eircode}`);
+  }
+  if (resume.personalInfo.linkedin && resume.personalInfo.linkedin.trim()) {
+    drawClickableLink('LinkedIn Profile', resume.personalInfo.linkedin);
+  }
   y += 4;
 
   // Divider line
@@ -161,7 +214,7 @@ export function exportResumeToPDF(resume: TailoredResume) {
 
   // Education
   if (resume.education?.length) {
-    addSectionHeader('Education & Qualifications (NFQ Framework)');
+    addSectionHeader('Education & Qualifications');
     resume.education.forEach(edu => {
       if (y > 265) {
         doc.addPage();
@@ -170,8 +223,7 @@ export function exportResumeToPDF(resume: TailoredResume) {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
       doc.setTextColor(15, 23, 42);
-      const degreeTitle = edu.nfqLevel ? `${edu.degree} [${edu.nfqLevel}]` : edu.degree;
-      doc.text(degreeTitle, margin, y);
+      doc.text(edu.degree, margin, y);
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);

@@ -35,18 +35,18 @@ export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
   onSaveLetter
 }) => {
   const [candidateName, setCandidateName] = useState(currentCredential.name || 'Nivel Monteiro');
-  const [candidateVisa, setCandidateVisa] = useState(currentCredential.visaStatus || 'Stamp 1G (Third Level Graduate)');
+  const [candidateVisa, setCandidateVisa] = useState(currentCredential.visaStatus || 'Stamp 1G');
   const [candidatePhone, setCandidatePhone] = useState(currentCredential.phone || '+353 89 984 7924');
   const [candidateEmail, setCandidateEmail] = useState(currentCredential.email || 'nivelmonteiro@outlook.com');
-  const [candidateLocation, setCandidateLocation] = useState(currentCredential.location || 'Dublin (Silicon Docks / City)');
+  const [candidateLocation, setCandidateLocation] = useState(currentCredential.location || 'Dublin');
 
-  const [jobTitle, setJobTitle] = useState('Senior Full Stack Developer');
-  const [companyName, setCompanyName] = useState('Stripe Ireland');
-  const [companyLocation, setCompanyLocation] = useState('Grand Canal Dock, Dublin 2, Ireland');
-  const [hiringManager, setHiringManager] = useState('Hiring Manager & Engineering Leadership');
+  const [jobTitle, setJobTitle] = useState('Financial Analyst (FP&A & Corporate Finance)');
+  const [companyName, setCompanyName] = useState('Bank of Ireland / Stripe Ireland');
+  const [companyLocation, setCompanyLocation] = useState('Dublin, Ireland');
+  const [hiringManager, setHiringManager] = useState('Hiring Manager & Finance Leadership');
   const [tone, setTone] = useState('Professional & Impactful');
-  const [keyPoints, setKeyPoints] = useState('5+ years building resilient web infrastructure in Dublin, passionate about distributed systems and mentoring.');
-  const [jobDescription, setJobDescription] = useState('Senior engineer to scale European payment rails with TypeScript, React, and Node.js microservices.');
+  const [keyPoints, setKeyPoints] = useState('8+ years progressive corporate financial modeling, NAV accounting, variance forecasting, and MBA from Dublin Business School (NFQ Level 9).');
+  const [jobDescription, setJobDescription] = useState('Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin.');
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +173,56 @@ export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Quick Target Presets */}
+            <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/80 space-y-1.5">
+              <span className="text-[11px] font-bold text-slate-700 block uppercase tracking-wider">Quick Target Presets:</span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobTitle('Financial Analyst (FP&A & Corporate Finance)');
+                    setCompanyName('Bank of Ireland / Stripe Ireland');
+                    setCompanyLocation('Dublin, Ireland');
+                    setHiringManager('Hiring Manager & Finance Leadership');
+                    setKeyPoints('8+ years progressive corporate financial modeling, NAV accounting, variance forecasting, and MBA from Dublin Business School (NFQ Level 9).');
+                    setJobDescription('Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin.');
+                  }}
+                  className={`text-left p-2 rounded-lg border text-xs transition-all ${
+                    jobTitle.toLowerCase().includes('financial analyst')
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1">
+                    <span>📊</span>
+                    <span>Financial Analyst</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobTitle('Fund Accountant (NAV & Portfolio Valuation)');
+                    setCompanyName('State Street Ireland / BNY Mellon');
+                    setCompanyLocation('Dublin IFSC, Ireland');
+                    setHiringManager('Fund Administration Hiring Team');
+                    setKeyPoints('8+ years accounting experience, mutual fund valuations, NAV computation, asset reconciliations, and Dublin Business School MBA (NFQ Level 9).');
+                    setJobDescription('Fund Accountant to manage Net Asset Value (NAV) computation, portfolio valuations, cash & custody reconciliations, and statutory audit support under CBI regulations.');
+                  }}
+                  className={`text-left p-2 rounded-lg border text-xs transition-all ${
+                    jobTitle.toLowerCase().includes('fund')
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1">
+                    <span>🏛️</span>
+                    <span>Fund Accountant</span>
+                  </div>
+                </button>
               </div>
             </div>
 

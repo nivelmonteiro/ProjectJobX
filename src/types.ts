@@ -1,25 +1,24 @@
 export type IrishStampVisa = 
-  | 'Stamp 1G (Third Level Graduate)'
-  | 'Stamp 1G (Spouse/Partner of CSEP)'
-  | 'Stamp 1 (Employment Permit Required)'
-  | 'Stamp 4 (Full Work Rights)'
-  | 'EU/EEA/Irish Citizen'
-  | 'Critical Skills (CSEP Eligible)'
-  | 'UK/Common Travel Area'
-  | 'Stamp 2 (Student - 20h/40h)'
+  | 'Stamp 1G'
+  | 'Stamp 1'
+  | 'Stamp 4'
+  | 'Stamp 2'
+  | 'EU/EEA Citizen'
+  | 'UK/CTA Citizen'
   | string;
 
 export type IrishLocation = 
-  | 'Dublin (Silicon Docks / City)'
-  | 'Dublin (County / Suburbs)'
+  | 'Dublin'
   | 'Cork'
   | 'Galway'
   | 'Limerick'
   | 'Waterford'
-  | 'Shannon / Midwest'
-  | 'Belfast / Cross-Border'
-  | 'Remote (Ireland-wide)'
-  | 'Hybrid (Dublin/Regional)';
+  | 'Kilkenny'
+  | 'Drogheda'
+  | 'Dundalk'
+  | 'Sligo'
+  | 'Athlone'
+  | 'Wexford';
 
 export type JobStatus = 
   | 'Saved'
@@ -52,7 +51,7 @@ export interface WorkExperience {
   id: string;
   company: string;
   role: string;
-  location: string;
+  location: string; // Nature of Business / Industry
   startDate: string;
   endDate: string;
   isCurrent: boolean;
@@ -65,7 +64,6 @@ export interface EducationItem {
   institution: string;
   location: string;
   year: string;
-  nfqLevel?: string; // e.g. "NFQ Level 8 (Honours Bachelor)" or "NFQ Level 9 (Masters)"
   gradeOrHonours?: string; // e.g. "First Class Honours (1:1)" or "2:1"
 }
 
@@ -103,7 +101,6 @@ export interface TailoredResume {
     link?: string;
   }[];
   keyAchievements: string[];
-  irishMarketNotes?: string;
 }
 
 export interface ATSAnalysis {

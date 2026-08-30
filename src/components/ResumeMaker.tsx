@@ -27,7 +27,8 @@ import {
   MapPin,
   Phone,
   Mail,
-  FileBadge
+  FileBadge,
+  ExternalLink
 } from 'lucide-react';
 
 interface ResumeMakerProps {
@@ -40,27 +41,26 @@ interface ResumeMakerProps {
 }
 
 export const IRISH_VISA_OPTIONS = [
-  { value: 'Stamp 1G (Third Level Graduate)', label: 'Stamp 1G (Third Level Graduate - 2-Year Full Work Rights)', badge: 'Full Rights (2 Yrs)' },
-  { value: 'Stamp 1G (Spouse/Partner of CSEP)', label: 'Stamp 1G (Spouse / Partner of Critical Skills Permit Holder)', badge: 'Full Rights (Spouse)' },
-  { value: 'Stamp 1 (Employment Permit Required)', label: 'Stamp 1 (General Employment Permit / CSEP Required)', badge: 'Permit Needed' },
-  { value: 'Stamp 4 (Full Work Rights)', label: 'Stamp 4 (Permanent / Spousal / 21-Month CSEP - Unrestricted)', badge: 'Full Rights (Unrestricted)' },
-  { value: 'EU/EEA/Irish Citizen', label: 'EU / EEA / Irish Citizen (Unrestricted Irish & EU Work Rights)', badge: 'Citizen Rights' },
-  { value: 'Critical Skills (CSEP Eligible)', label: 'Critical Skills (CSEP Eligible - Direct 2-Yr Path to Stamp 4)', badge: 'CSEP Eligible' },
-  { value: 'UK/Common Travel Area', label: 'UK / Common Travel Area (CTA - Full Work Rights)', badge: 'CTA Rights' },
-  { value: 'Stamp 2 (Student - 20h/40h)', label: 'Stamp 2 (Student Visa - 20h/week term, 40h holidays)', badge: 'Student 20h/40h' }
+  { value: '', label: '(Blank - None / Do not display)' },
+  { value: 'Stamp 1G', label: 'Stamp 1G' },
+  { value: 'Stamp 1', label: 'Stamp 1' },
+  { value: 'Stamp 4', label: 'Stamp 4' },
+  { value: 'Stamp 2', label: 'Stamp 2' },
+  { value: 'EU/EEA Citizen', label: 'EU/EEA Citizen' },
+  { value: 'UK/CTA Citizen', label: 'UK/CTA Citizen' }
 ];
 
 export const IRISH_LOCATIONS: IrishLocation[] = [
-  'Dublin (Silicon Docks / City)',
-  'Dublin (County / Suburbs)',
+  'Dublin',
   'Cork',
   'Galway',
   'Limerick',
   'Waterford',
-  'Shannon / Midwest',
-  'Belfast / Cross-Border',
-  'Remote (Ireland-wide)',
-  'Hybrid (Dublin/Regional)'
+  'Kilkenny',
+  'Drogheda',
+  'Dundalk',
+  'Sligo',
+  'Athlone'
 ];
 
 export const ResumeMaker: React.FC<ResumeMakerProps> = ({
@@ -73,17 +73,18 @@ export const ResumeMaker: React.FC<ResumeMakerProps> = ({
 }) => {
   // Candidate Profile & Irish Work Eligibility States (Directly editable by user)
   const [candidateName, setCandidateName] = useState(currentCredential.name || 'Nivel Monteiro');
-  const [candidateVisa, setCandidateVisa] = useState<string>(currentCredential.visaStatus || 'Stamp 1G (Third Level Graduate)');
+  const [showWorkEligibility, setShowWorkEligibility] = useState(true);
+  const [candidateVisa, setCandidateVisa] = useState<string>(currentCredential.visaStatus || 'Stamp 1G');
   const [candidateEmail, setCandidateEmail] = useState(currentCredential.email || 'nivelmonteiro@outlook.com');
   const [candidatePhone, setCandidatePhone] = useState(currentCredential.phone || '+353 89 984 7924');
-  const [candidateLocation, setCandidateLocation] = useState<string>(currentCredential.location || 'Dublin (Silicon Docks / City)');
+  const [candidateLocation, setCandidateLocation] = useState<string>(currentCredential.location || 'Dublin');
   const [candidateEircode, setCandidateEircode] = useState(currentCredential.eircode || 'D02 X285');
   const [candidateLinkedin, setCandidateLinkedin] = useState(currentCredential.linkedinUrl || 'https://linkedin.com/in/nivelmonteiro');
 
-  const [jobTitle, setJobTitle] = useState('Financial Crime & Regulatory Compliance Analyst');
-  const [companyName, setCompanyName] = useState('Stripe Ireland / Bank of Ireland');
+  const [jobTitle, setJobTitle] = useState('Financial Analyst (FP&A & Corporate Finance)');
+  const [companyName, setCompanyName] = useState('Bank of Ireland / Stripe Ireland');
   const [jobDescription, setJobDescription] = useState(
-    'Looking for a Financial Crime & Regulatory Compliance Analyst in Dublin IFSC. Responsibilities: Perform KYC/AML due diligence, real-time sanctions screening, transaction monitoring, AML risk assessments, regulatory reporting under Central Bank of Ireland guidelines, and cross-functional audit coordination. Requirements: 5+ years finance/compliance experience, Stamp 1G/4 or EU work authorization, strong Excel/financial systems expertise, and NFQ Level 8/9 education.'
+    'Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin. Requirements: Strong Excel (XLOOKUP, Pivot, financial modeling), Power BI, SAP/ERP knowledge, variance analysis, and immediate full-time Irish work eligibility (Stamp 1G / Stamp 4 / EU Citizen).'
   );
   const [tone, setTone] = useState('IFSC Finance & Rigour');
   
@@ -185,118 +186,113 @@ export const ResumeMaker: React.FC<ResumeMakerProps> = ({
 
   const handleLoadNivelResume = () => {
     setCandidateName('Nivel Monteiro');
-    setCandidateVisa('Stamp 1G (Third Level Graduate)');
+    setCandidateVisa('Stamp 1G');
+    setShowWorkEligibility(true);
     setCandidateEmail('nivelmonteiro@outlook.com');
     setCandidatePhone('+353 89 984 7924');
-    setCandidateLocation('Dublin (Silicon Docks / City)');
+    setCandidateLocation('Dublin');
     setCandidateEircode('D02 X285');
     setCandidateLinkedin('https://linkedin.com/in/nivelmonteiro');
 
-    const nivelCV = `NIVEL M.
-STRATEGIC FINANCE & ACCOUNTING ANALYST | DRIVING FINANCIAL ACCURACY, COMPLIANCE & BUSINESS GROWTH
-Stamp 1G | Dublin | +353 899847924 | nivelmonteiro@outlook.com | LinkedIn: https://linkedin.com/in/nivelmonteiro
+    const nivelCV = `NIVEL MONTEIRO
+STRATEGIC FINANCE & REGULATORY COMPLIANCE ANALYST
+Dublin, Ireland | +353 89 984 7924 | nivelmonteiro@outlook.com | Eircode: D02 X285 | LinkedIn: https://linkedin.com/in/nivelmonteiro
+Work Authorization: Stamp 1G (Full legal entitlement to work in Ireland)
 
-EXECUTIVE SUMMARY
-Strategic and detail-oriented Financial Crime & Financial Analyst with over 8+ years of experience spanning regulatory compliance, investment management, financial reporting, and audit operations across corporate. Demonstrated expertise in executing Know Your Customer (KYC) due diligence, real-time financial sanctions screening, and robust risk assessments to safeguard against financial crime and ensure strict adherence to AML frameworks. Adept at delivering GAAP/IFRS-compliant financial statements, managing audits, and optimizing liquidity performance. Proficient in SAP FICO, QuickBooks, and Advanced Excel, with a strong ability to transform complex financial and compliance data into actionable business insights.
+PROFESSIONAL SUMMARY
+Strategic and detail-oriented Financial Analyst & Regulatory Compliance Specialist with over 8+ years of progressive experience spanning corporate finance, KYC/AML due diligence, sanctions screening, financial statement finalization, and statutory audit operations. Holds an MBA in Finance from Dublin Business School (NFQ Level 9) and valid Irish Stamp 1G work authorization with immediate right to work in Ireland without sponsorship. Proficient in SAP FICO, Advanced MS Excel financial modeling, and leading cross-functional audit readiness.
 
-KEY STRENGTHS:
-- Recognized for analytical precision, problem-solving mindset, and identifying regulatory risk.
-- End-to-end KYC profiling, sanctions checks, audit readiness, fraud detection, and operational efficiency.
+CORE COMPETENCIES & TECHNICAL SKILLS
+• Technical & Modeling: Financial Modeling (DCF/LBO), Cash Flow Forecasting, Budget Variance, NAV Accounting, Advanced MS Excel (XLOOKUP, Pivot, Macros), Power BI, SQL Queries, SAP FICO, QuickBooks, Tally Prime.
+• Compliance & Governance: KYC / CKYC Due Diligence, AML Protocols, Financial Sanctions Screening, Statutory Audit Readiness, GAAP & IFRS Financial Reporting, Direct & Indirect Taxation (Irish Tax / VAT / TDS), Internal Financial Controls.
+• Soft Skills: Executive Stakeholder Reporting, Analytical Problem-Solving, Cross-Functional Team Leadership, Audit Coordination & Regulatory Communication.
 
-CORE COMPETENCIES:
-• Financial Reporting & Analysis – GAAP/IFRS compliant statements and variance analysis.
-• Regulatory Compliance & Financial Crime Mitigation – Central KYC (CKYC) due diligence, AML protocols, sanctions screening, RIA compliance frameworks.
-• Audit & Compliance – Internal/external audit coordination, statutory compliance.
-• Accounting & Taxation – Income tax, sales tax, service tax/GST submissions.
-• Budgeting & Forecasting – Liquidity management and capital allocation.
-• Investment & Treasury Operations – Mutual fund accounting, NAV reporting.
-• Systems: SAP FICO, QuickBooks, Xero, Advanced MS Excel, MS Word.
+PROFESSIONAL EXPERIENCE
 
-WORK EXPERIENCE:
-1. FINANCIAL ANALYST (FREELANCER) — Finkasturi | 11/2024 – Present (Dublin Liaison)
-- Lead full-cycle financial modeling, forecasting, and budget variance analyses to support strategic growth.
-- Perform detailed due diligence, KYC, and financial health assessments for clients and prospective investments.
-- Develop interactive financial dashboards to track KPIs, profitability margins, and operational cash flows.
-- Review client financial data and transaction flows to identify compliance and operational risks.
-- Prepare valuation models, sensitivity analyses, and investment memorandums for stakeholders.
+1. FINANCIAL ANALYST (FREELANCE / ADVISORY) — Finkasturi Technologies / Strategic Advisory | 11/2024 – Present
+Domain: Corporate Advisory, Financial Modeling & Strategy (Dublin Liaison & Remote)
+- Spearhead full-cycle corporate financial modeling, multi-scenario forecasting, and budget variance analyses to support strategic executive decisions.
+- Execute end-to-end KYC/AML customer due diligence, sanctions screening, and financial crime risk profiling for international corporate client portfolios.
+- Engineer dynamic KPI & liquidity dashboards in Advanced MS Excel and Power BI, tracking operating burn rates, cash flow, and margin performance.
+- Develop DCF valuation models, sensitivity analyses, and investment memoranda for board presentations and investor due diligence review.
+- Ensure rigorous compliance with international reporting standards, statutory frameworks, and data protection guidelines.
 
-2. ACCOUNTANT & ACCOUNTS EXECUTIVE — American Eye & Retina Care Pvt Ltd | 08/2022 – 08/2023 (Bangalore)
-- Directed full-cycle financial reporting and statement finalization under GAAP/IFRS, ensuring 100% accuracy and regulatory compliance.
-- Streamlined reporting and settlement processes, reducing turnaround time by 20% while improving accuracy.
-- Led cross-department audits to strengthen regulatory adherence and fiscal governance.
-- Designed and implemented cash flow forecasting systems that improved liquidity management.
-- Optimized asset and inventory valuation for long-term capital planning and budgeting.
-- Partnered with leadership to deliver actionable insights that supported strategic decision-making.
+2. ACCOUNTANT & FINANCIAL ANALYST — American Eye & Retina Care Pvt. Ltd. | 08/2022 – 08/2023
+Domain: Healthcare Financial Operations & Multi-Branch Accounting (Bangalore, India)
+- Directed full-cycle financial reporting, ledger maintenance, and final accounts finalization under GAAP/IFRS standards with 100% statutory compliance.
+- Streamlined accounts reconciliation and billing workflows, reducing monthly close turnaround time by 20% while eliminating reporting bottlenecks.
+- Led cross-departmental internal audits and balance sheet reconciliations, identifying cost anomalies and enhancing working capital efficiency.
+- Designed structured cash flow forecasting models that improved short-term liquidity management and vendor settlement cycles.
 
-3. ACCOUNTS & FINANCE EXECUTIVE — RNS & Associates (Tax Practitioner) | 08/2017 – 04/2019 (Mangalore)
-- Executed audits and prepared final accounts across diverse sectors, ensuring transparent financial reporting.
-- Managed tax filings and compliance for sales and income tax, maintaining 100% on-time submissions.
-- Improved reporting workflows by automating manual processes, reducing data errors by 15%.
-- Advised clients on tax planning and investment optimization, improving cash flow efficiency.
-- Supported internal audit and compliance documentation to enhance financial governance.
+3. ACCOUNTS & FINANCE EXECUTIVE — RNS & Associates (Chartered Accountants & Tax Practitioners) | 08/2017 – 04/2019
+Domain: Statutory Audit, Direct & Indirect Taxation, Corporate Advisory (Mangalore, India)
+- Executed statutory audits, trial balance reconciliations, and financial statement preparations for corporate and SME clients across multiple industries.
+- Managed direct and indirect tax compliance (GST, Income Tax, Sales Tax), ensuring 100% on-time statutory submissions with zero penalties.
+- Automated ledger reconciliation and reporting workflows via Advanced Excel, reducing data reconciliation errors by 15%.
+- Advised client executives on tax planning strategies, compliance documentation, and financial governance frameworks.
 
-4. ACCOUNTS & FINANCE OFFICER — Bombay Oxygen Corporation Ltd / Bombay Investment Co Pvt Ltd | 11/2014 – 08/2017 (Mumbai)
-- Managed mutual fund accounting, NAV computation, and asset reconciliation under SEBI guidelines.
-- Prepared TDS and service tax filings, achieving full statutory compliance and timely submission.
-- Developed financial reports and reconciliations supporting quarterly and annual audits.
-- Negotiated insurance renewals, reducing premium costs while expanding policy coverage.
-- Produced monthly financial summaries for management's decision-making and cost control.
+4. ACCOUNTS & FINANCE OFFICER — Bombay Oxygen Corporation Ltd. / Bombay Investment Co. Pvt. Ltd. | 11/2014 – 08/2017
+Domain: Treasury, Mutual Fund Accounting, NAV Computation & Statutory Filings (Mumbai, India)
+- Managed mutual fund accounting, daily Net Asset Value (NAV) computation, and asset reconciliation under SEBI regulatory guidelines.
+- Prepared Tax Deducted at Source (TDS) schedules, statutory service tax filings, and documentation for quarterly and annual external audits.
+- Coordinated liquidity management and treasury transactions with banking institutions and asset management houses.
+- Negotiated corporate insurance renewals, reducing annual premium costs by 12% while expanding policy coverage.
 
-ADDITIONAL EXPERIENCE:
-Almae Holdings — Mutual Fund Distributor (Freelancer) | Jan 2023 – Present
-- Delivered customized investment strategies based on client objectives and market research.
-- Analyzed fund performance, advised on portfolio diversification, and monitored capital efficiency.
+EDUCATION
+- Master of Business Administration (MBA) – Finance | Dublin Business School (DBS), Dublin, Ireland (2023 – 2025)
+  Honours Graduate (NFQ Level 9 Equivalent)
+- Bachelor of Business Management (BBM) – Accounts & Finance | St. Aloysius College, Mangalore University, India (2011 – 2014)
+  First Class Honours (NFQ Level 8 Equivalent)
 
-EDUCATION:
-- Master Of Business Administration (MBA), Finance — Dublin Business School, Ireland (2023 – 2025) (NFQ Level 9)
-  Focus: Corporate Finance, Financial Analysis, Global Markets, Leadership
-- Bachelor Of Business Management (BBM: Accounts & Finance) — St. Aloysius College, Mangalore University (2011 – 2014) (NFQ Level 8 Equivalent)
-
-CERTIFICATIONS:
+CERTIFICATIONS & COMPLIANCE
+- Diploma in Irish Taxation – University College Dublin (UCD Professional Academy)
 - Certified Mutual Fund Distributor – National Institute of Securities Markets (NISM), India
-- Diploma in Investment Management – Personal Finance, Stocks, Debt, Real Estate
-- SAP Certified – FICO, MM, SD & PP Modules
-- QuickBooks & Excel Certified – Financial Modelling, Macros & Scenario Analysis
-- Diploma in Irish Taxation – University College Dublin (UCD)`;
+- SAP Certified – ERP Financials (FICO, MM, SD & PP Modules)
+- Diploma in Investment Management & Portfolio Strategy
+- Advanced Financial Modeling & Valuation – QuickBooks & Advanced MS Excel Certified
+- Irish GDPR & Data Protection Regulations Compliance
+- AML / KYC & Financial Crime Due Diligence Frameworks`;
 
     setExistingNotes(nivelCV);
-    setUploadedFileName('Nivel_Monteiro_Strategic_Finance_CV.pdf');
-    setJobTitle('Financial Crime & Regulatory Compliance Analyst');
-    setCompanyName('Stripe / Bank of Ireland');
-    setJobDescription('Looking for a Financial Crime & Regulatory Compliance Analyst in Dublin IFSC. Responsibilities: Perform KYC/AML due diligence, real-time sanctions screening, transaction monitoring, AML risk assessments, regulatory reporting under Central Bank of Ireland guidelines, and cross-functional audit coordination. Requirements: 5+ years finance/compliance experience, Stamp 1G/4 or EU work authorization, strong Excel/financial systems expertise, and NFQ Level 8/9 education.');
+    setUploadedFileName('Nivel_Monteiro_Tailored_Irish_CV.pdf');
+    setJobTitle('Financial Analyst (FP&A & Corporate Finance)');
+    setCompanyName('Bank of Ireland / Stripe Ireland');
+    setJobDescription('Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin. Requirements: Strong Excel (XLOOKUP, Pivot, financial modeling), Power BI, SAP/ERP knowledge, variance analysis, and immediate full-time Irish work eligibility (Stamp 1G / Stamp 4 / EU Citizen).');
+    setTone('IFSC Finance & Rigour');
   };
 
   const handleLoadSampleResume = () => {
     setCandidateName('Aoife Murphy');
-    setCandidateVisa('Stamp 4 (Full Work Rights)');
+    setCandidateVisa('Stamp 4');
+    setShowWorkEligibility(true);
     setCandidateEmail('aoife.murphy.irl@eirecareers.ie');
     setCandidatePhone('+353 87 123 4567');
-    setCandidateLocation('Dublin (Silicon Docks / City)');
+    setCandidateLocation('Dublin');
     setCandidateEircode('D02 X285');
     setCandidateLinkedin('https://linkedin.com/in/aoifemurphy-dev');
 
     const sample = `Aoife Murphy
 Senior Full Stack Engineer
 Dublin, Ireland | Eircode: D02 X285 | +353 87 123 4567 | aoife.murphy.irl@eirecareers.ie
-Work Authorization: Stamp 4 / EU Citizen (Full Work Rights)
+Work Authorization: Stamp 4
 LinkedIn: linkedin.com/in/aoifemurphy-dev | GitHub: github.com/aoifemurphy
 
 PROFESSIONAL SUMMARY
-Dynamic Senior Full Stack Engineer with 6+ years building distributed cloud platforms, fintech transaction engines, and modern web applications across Dublin Silicon Docks. Specialized in TypeScript, React, Node.js, and AWS.
+Dynamic Senior Full Stack Engineer with 6+ years building distributed cloud platforms, fintech transaction engines, and modern web applications. Specialized in TypeScript, React, Node.js, and AWS.
 
 PROFESSIONAL EXPERIENCE
-Senior Software Engineer — Workday Ireland (Dublin) | 2022 - Present
+Senior Software Engineer — Workday Ireland (Enterprise Cloud & HCM) | 2022 - Present
 - Architected enterprise financial microservices processing 3.5M+ daily API requests with 99.99% uptime.
 - Engineered modern React and TypeScript frontend, slashing page load times by 48%.
-- Partnered with European compliance teams to ensure strict GDPR compliance under Irish Data Protection Commission guidelines.
+- Partnered with compliance and security teams to ensure strict GDPR data protection adherence.
 
-Software Developer — Version 1 (Dublin / Hybrid) | 2019 - 2022
+Software Developer — Version 1 (Digital Transformation & Cloud Advisory) | 2019 - 2022
 - Developed scalable cloud backends on AWS using Node.js, PostgreSQL, and Redis.
 - Implemented CI/CD deployment automation with GitHub Actions, reducing release cycle times by 35%.
 
 EDUCATION
-- M.Sc. in Computer Science — University College Dublin (UCD), 2019 (NFQ Level 9, First Class Honours 1:1)
-- B.Sc. in Computer Applications — Dublin City University (DCU), 2018 (NFQ Level 8, 2.1 Honours)
+- M.Sc. in Computer Science — University College Dublin (UCD), 2019 (First Class Honours 1:1)
+- B.Sc. in Computer Applications — Dublin City University (DCU), 2018 (2.1 Honours)
 
 SKILLS & CERTIFICATIONS
 - Technical: TypeScript, JavaScript, React, Next.js, Node.js, PostgreSQL, AWS (ECS, Lambda, RDS), Docker, GraphQL, REST APIs
@@ -312,10 +308,12 @@ SKILLS & CERTIFICATIONS
     setIsGenerating(true);
     setError(null);
 
+    const effectiveWorkEligibility = showWorkEligibility ? candidateVisa : '';
+
     const tailoredProfile: UserCredential = {
       ...currentCredential,
       name: candidateName.trim() || currentCredential.name,
-      visaStatus: candidateVisa as any,
+      visaStatus: effectiveWorkEligibility as any,
       email: candidateEmail.trim() || currentCredential.email,
       phone: candidatePhone.trim() || currentCredential.phone,
       location: candidateLocation as any,
@@ -337,7 +335,7 @@ SKILLS & CERTIFICATIONS
       // Ensure personal details in response strictly match the candidate form inputs
       if (res.resume && res.resume.personalInfo) {
         res.resume.personalInfo.fullName = candidateName.trim() || res.resume.personalInfo.fullName;
-        res.resume.personalInfo.workEligibility = candidateVisa || res.resume.personalInfo.workEligibility;
+        res.resume.personalInfo.workEligibility = effectiveWorkEligibility;
         res.resume.personalInfo.email = candidateEmail.trim() || res.resume.personalInfo.email;
         res.resume.personalInfo.phone = candidatePhone.trim() || res.resume.personalInfo.phone;
         res.resume.personalInfo.location = candidateLocation || res.resume.personalInfo.location;
@@ -366,24 +364,31 @@ SKILLS & CERTIFICATIONS
 
   const handleCopyMarkdown = () => {
     if (!currentResume) return;
-    const md = `# ${currentResume.personalInfo.fullName}
-**${currentResume.targetRole}** | [${currentResume.personalInfo.workEligibility}]
-${currentResume.personalInfo.phone} | ${currentResume.personalInfo.email} | ${currentResume.personalInfo.location} | Eircode: ${currentResume.personalInfo.eircode}
+    const eligibilityTag = currentResume.personalInfo?.workEligibility?.trim()
+      ? ` | [${currentResume.personalInfo.workEligibility.trim()}]`
+      : '';
+    const technicalSkills = (currentResume.skills?.technical || []).join(', ');
+    const domainSkills = (currentResume.skills?.domain || []).join(', ');
+    const toolsSkills = (currentResume.skills?.tools || []).join(', ');
+
+    const md = `# ${currentResume.personalInfo?.fullName || 'Candidate'}
+**${currentResume.targetRole || 'Professional'}**${eligibilityTag}
+${currentResume.personalInfo?.phone || ''} | ${currentResume.personalInfo?.email || ''} | ${currentResume.personalInfo?.location || ''} | Eircode: ${currentResume.personalInfo?.eircode || ''}
 
 ## Professional Summary
-${currentResume.professionalSummary}
+${currentResume.professionalSummary || ''}
 
 ## Core Skills
-- **Technical:** ${currentResume.skills.technical.join(', ')}
-- **Domain & Compliance:** ${currentResume.skills.domain.join(', ')}
-- **Tools & Systems:** ${currentResume.skills.tools.join(', ')}
+- **Technical:** ${technicalSkills}
+- **Domain & Compliance:** ${domainSkills}
+- **Tools & Systems:** ${toolsSkills}
 
 ## Experience
-${currentResume.workExperiences.map(w => `### ${w.role} - ${w.company} (${w.startDate} - ${w.endDate})
-${w.highlights.map(h => `- ${h}`).join('\n')}`).join('\n\n')}
+${(currentResume.workExperiences || []).map(w => `### ${w.role} - ${w.company} (${w.startDate} - ${w.endDate || 'Present'}${w.location ? ` | ${w.location}` : ''})
+${(w.highlights || []).map(h => `- ${h}`).join('\n')}`).join('\n\n')}
 
-## Education (Irish NFQ)
-${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Level 8'}) - ${e.institution}, ${e.year}`).join('\n')}
+## Education
+${(currentResume.education || []).map(e => `- **${e.degree}** - ${e.institution}, ${e.year}`).join('\n')}
 `;
 
     navigator.clipboard.writeText(md);
@@ -393,7 +398,12 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
 
   const formatResumeForATS = (): string => {
     if (!currentResume) return '';
-    return `${currentResume.personalInfo.fullName}\n${currentResume.targetRole}\n${currentResume.personalInfo.workEligibility}\n\nSummary:\n${currentResume.professionalSummary}\n\nSkills:\n${currentResume.skills.technical.join(', ')}, ${currentResume.skills.domain.join(', ')}\n\nExperience:\n${currentResume.workExperiences.map(e => `${e.role} at ${e.company}:\n${e.highlights.join('\n')}`).join('\n\n')}\n\nEducation:\n${currentResume.education.map(ed => `${ed.degree} - ${ed.institution}`).join('\n')}`;
+    const eligibilityLine = currentResume.personalInfo?.workEligibility?.trim()
+      ? `${currentResume.personalInfo.workEligibility.trim()}\n`
+      : '';
+    const tech = (currentResume.skills?.technical || []).join(', ');
+    const domain = (currentResume.skills?.domain || []).join(', ');
+    return `${currentResume.personalInfo?.fullName || 'Candidate'}\n${currentResume.targetRole || 'Professional'}\n${eligibilityLine}Summary:\n${currentResume.professionalSummary || ''}\n\nSkills:\n${tech}, ${domain}\n\nExperience:\n${(currentResume.workExperiences || []).map(e => `${e.role} at ${e.company}:\n${(e.highlights || []).join('\n')}`).join('\n\n')}\n\nEducation:\n${(currentResume.education || []).map(ed => `${ed.degree} - ${ed.institution}`).join('\n')}`;
   };
 
   return (
@@ -457,14 +467,29 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-800 block mb-1 flex items-center justify-between">
-                    <span>Work Eligibility / Stamp</span>
-                    <span className="text-[10px] text-emerald-700 font-normal">Required</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-800">
+                      Work Eligibility
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={showWorkEligibility}
+                        onChange={(e) => setShowWorkEligibility(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                      />
+                      <span className="text-[11px] font-semibold text-slate-600">Include on CV</span>
+                    </label>
+                  </div>
                   <select
                     value={candidateVisa}
+                    disabled={!showWorkEligibility}
                     onChange={(e) => setCandidateVisa(e.target.value)}
-                    className="w-full px-2.5 py-2 text-xs border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-hidden bg-emerald-50/40 text-emerald-950 font-medium"
+                    className={`w-full px-2.5 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-hidden font-medium transition-colors ${
+                      showWorkEligibility
+                        ? 'border-emerald-300 bg-emerald-50/40 text-emerald-950'
+                        : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                    }`}
                   >
                     {IRISH_VISA_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -473,23 +498,6 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                     ))}
                   </select>
                 </div>
-              </div>
-
-              {/* Stamp explanation badge */}
-              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-slate-900 font-semibold">{candidateVisa}:</strong>{' '}
-                  {candidateVisa.includes('1G')
-                    ? 'Grants 2 years full-time work rights in Ireland for NFQ Level 9 Masters graduates. Employers face zero sponsorship paperwork.'
-                    : candidateVisa.includes('Stamp 1') && !candidateVisa.includes('1G')
-                    ? 'Candidate is seeking employment permit sponsorship (CSEP or General Employment Permit).'
-                    : candidateVisa.includes('Stamp 4')
-                    ? 'Permanent / unrestricted right to work in Ireland with full entitlement.'
-                    : candidateVisa.includes('EU')
-                    ? 'Unrestricted right to work in Ireland and across the entire European Union.'
-                    : 'Explicit work eligibility declaration at top of CV.'}
-                </span>
               </div>
 
               {/* Phone (+353) & Email */}
@@ -545,6 +553,18 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                   />
                 </div>
               </div>
+
+              {/* LinkedIn Profile URL */}
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">LinkedIn Profile URL</label>
+                <input
+                  type="text"
+                  value={candidateLinkedin}
+                  onChange={(e) => setCandidateLinkedin(e.target.value)}
+                  placeholder="https://linkedin.com/in/yourprofile"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-hidden bg-slate-50/50"
+                />
+              </div>
             </div>
           </div>
 
@@ -558,6 +578,54 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
               <p className="text-xs text-slate-500 mt-0.5">
                 AI customizes keywords and quantifiable bullets specifically for this role
               </p>
+            </div>
+
+            {/* Quick Target Presets */}
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-2">
+              <span className="text-[11px] font-bold text-slate-700 block uppercase tracking-wider">Quick Target Presets:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobTitle('Financial Analyst (FP&A & Corporate Finance)');
+                    setCompanyName('Bank of Ireland / Stripe Ireland');
+                    setJobDescription('Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin. Requirements: Strong Excel (XLOOKUP, Pivot, financial modeling), Power BI, SAP/ERP knowledge, variance analysis, and immediate full-time Irish work eligibility (Stamp 1G / Stamp 4 / EU Citizen).');
+                    setTone('IFSC Finance & Rigour');
+                  }}
+                  className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
+                    jobTitle.toLowerCase().includes('financial analyst')
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1.5">
+                    <span>📊</span>
+                    <span>Financial Analyst</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 font-normal">FP&A, DCF Modeling, Variance & Cash Flow</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJobTitle('Fund Accountant (NAV & Portfolio Valuation)');
+                    setCompanyName('State Street Ireland / BNY Mellon');
+                    setJobDescription('Fund Accountant in Dublin IFSC to manage Net Asset Value (NAV) computations, daily mutual fund & portfolio valuations, cash and asset reconciliations, subscription/redemption oversight, and statutory audit preparation under CBI / UCITS / AIFMD regulatory frameworks. Requirements: Degree in Finance/Accounting, NAV calculation experience, advanced Excel, strong numerical accuracy, and Stamp 1G/4 or EU work authorization.');
+                    setTone('IFSC Finance & Rigour');
+                  }}
+                  className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
+                    jobTitle.toLowerCase().includes('fund')
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1.5">
+                    <span>🏛️</span>
+                    <span>Fund Accountant</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 font-normal">NAV Valuation, Reconciliations & UCITS/CBI</div>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -835,9 +903,13 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                       <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                         {currentResume.personalInfo.fullName.toUpperCase()}
                       </h2>
-                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-mono">
-                        {currentResume.personalInfo.workEligibility}
-                      </span>
+                      {currentResume.personalInfo.workEligibility?.trim() && 
+                       !currentResume.personalInfo.workEligibility.toLowerCase().includes('critical') &&
+                       !currentResume.personalInfo.workEligibility.toLowerCase().includes('csep') ? (
+                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-mono">
+                          {currentResume.personalInfo.workEligibility.trim()}
+                        </span>
+                      ) : null}
                     </div>
 
                     <p className="text-sm font-semibold text-emerald-800 mt-0.5">{currentResume.targetRole}</p>
@@ -857,7 +929,16 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                       {currentResume.personalInfo.linkedin && (
                         <>
                           <span>•</span>
-                          <span className="text-emerald-700 font-medium">{currentResume.personalInfo.linkedin}</span>
+                          <a 
+                            href={currentResume.personalInfo.linkedin.startsWith('http') ? currentResume.personalInfo.linkedin : `https://${currentResume.personalInfo.linkedin}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-700 hover:text-emerald-800 underline font-medium cursor-pointer inline-flex items-center gap-0.5"
+                            title="Open LinkedIn Profile"
+                          >
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 inline text-emerald-600" />
+                          </a>
                         </>
                       )}
                     </div>
@@ -911,7 +992,7 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                             <span className="text-slate-600"> — {exp.company}</span>
                           </div>
                           <span className="text-slate-500 font-mono">
-                            {exp.startDate} – {exp.endDate || 'Present'} | {exp.location}
+                            {exp.startDate} – {exp.endDate || 'Present'} {exp.location ? `| ${exp.location}` : ''}
                           </span>
                         </div>
                         <ul className="list-disc list-outside pl-4 space-y-1 text-slate-700 text-xs">
@@ -926,17 +1007,12 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                   {/* Education */}
                   <div className="space-y-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-emerald-600/60 pb-1">
-                      Education (Irish NFQ Framework)
+                      Education
                     </h4>
                     {currentResume.education.map((edu, idx) => (
                       <div key={edu.id || idx} className="flex flex-col sm:flex-row sm:items-center justify-between text-xs">
                         <div>
                           <span className="font-bold text-slate-900">{edu.degree}</span>
-                          {edu.nfqLevel && (
-                            <span className="ml-2 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                              {edu.nfqLevel}
-                            </span>
-                          )}
                           {edu.gradeOrHonours && (
                             <span className="text-slate-600 italic ml-1">({edu.gradeOrHonours})</span>
                           )}
@@ -953,14 +1029,6 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                         Certifications & Compliance
                       </h4>
                       <p className="text-xs text-slate-700">{currentResume.certifications.join('  •  ')}</p>
-                    </div>
-                  )}
-
-                  {/* Irish Market Recruiter Advice note */}
-                  {currentResume.irishMarketNotes && (
-                    <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200/90 text-xs text-slate-600">
-                      <strong className="text-emerald-800">Recruiter Note: </strong>
-                      {currentResume.irishMarketNotes}
                     </div>
                   )}
                 </div>
@@ -990,9 +1058,12 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                       </div>
 
                       <div>
-                        <label className="font-semibold text-slate-800 block mb-1">Work Eligibility / Stamp Status</label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="font-semibold text-slate-800">Work Eligibility</label>
+                          <span className="text-[10px] text-slate-500 font-normal">Optional</span>
+                        </div>
                         <select
-                          value={currentResume.personalInfo.workEligibility}
+                          value={currentResume.personalInfo.workEligibility || ''}
                           onChange={(e) => setCurrentResume({
                             ...currentResume,
                             personalInfo: { ...currentResume.personalInfo, workEligibility: e.target.value }
@@ -1001,7 +1072,7 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                         >
                           {IRISH_VISA_OPTIONS.map((opt) => (
                             <option key={opt.value} value={opt.value}>
-                              {opt.value}
+                              {opt.label}
                             </option>
                           ))}
                         </select>
@@ -1029,6 +1100,20 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                           className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-hidden bg-white font-mono"
                         />
                       </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="font-semibold text-slate-800 block mb-1">LinkedIn Profile URL</label>
+                        <input
+                          type="text"
+                          value={currentResume.personalInfo.linkedin || ''}
+                          onChange={(e) => setCurrentResume({
+                            ...currentResume,
+                            personalInfo: { ...currentResume.personalInfo, linkedin: e.target.value }
+                          })}
+                          placeholder="https://linkedin.com/in/yourprofile"
+                          className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-hidden bg-white text-xs"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -1046,7 +1131,7 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                     <label className="font-semibold text-slate-800 block mb-1">Technical Skills (comma-separated)</label>
                     <input
                       type="text"
-                      value={currentResume.skills.technical.join(', ')}
+                      value={(currentResume.skills?.technical || []).join(', ')}
                       onChange={(e) => setCurrentResume({
                         ...currentResume,
                         skills: {
@@ -1062,7 +1147,7 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                     <label className="font-semibold text-slate-800 block mb-1">Domain Skills (comma-separated)</label>
                     <input
                       type="text"
-                      value={currentResume.skills.domain.join(', ')}
+                      value={(currentResume.skills?.domain || []).join(', ')}
                       onChange={(e) => setCurrentResume({
                         ...currentResume,
                         skills: {
@@ -1075,10 +1160,29 @@ ${currentResume.education.map(e => `- **${e.degree}** (${e.nfqLevel || 'NFQ Leve
                   </div>
 
                   <div>
-                    <label className="font-semibold text-slate-800 block mb-1">Experience Bullets</label>
-                    {currentResume.workExperiences.map((exp, expIndex) => (
+                    <label className="font-semibold text-slate-800 block mb-1">Experience (Nature of Business & Highlights)</label>
+                    {(currentResume.workExperiences || []).map((exp, expIndex) => (
                       <div key={expIndex} className="p-3 border border-slate-200 rounded-lg mb-2 bg-slate-50/50 space-y-2">
-                        <div className="font-bold text-slate-900">{exp.role} at {exp.company}</div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-slate-500 font-semibold block">Role & Company</label>
+                            <div className="font-bold text-slate-900">{exp.role} at {exp.company}</div>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-500 font-semibold block">Firm Nature of Business</label>
+                            <input
+                              type="text"
+                              value={exp.location || ''}
+                              placeholder="e.g. Fintech & Payments, Asset Management"
+                              onChange={(e) => {
+                                const newExps = [...currentResume.workExperiences];
+                                newExps[expIndex].location = e.target.value;
+                                setCurrentResume({ ...currentResume, workExperiences: newExps });
+                              }}
+                              className="w-full p-1.5 border border-slate-300 rounded bg-white text-xs"
+                            />
+                          </div>
+                        </div>
                         {exp.highlights.map((hl, hlIndex) => (
                           <input
                             key={hlIndex}

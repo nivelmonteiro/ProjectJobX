@@ -8,6 +8,25 @@ import mammoth from 'mammoth';
 const app = express();
 const PORT = 3000;
 
+// Process-level safety guards to prevent unexpected exit
+process.on('uncaughtException', (err) => {
+  console.error('[Server Guard] Uncaught Exception:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Server Guard] Unhandled Rejection:', reason);
+});
+
+// CORS & Preflight middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -160,9 +179,9 @@ let credentialsStore: CredentialRecord[] = [
     id: 'IRL-JOB-101',
     name: 'Nivel Monteiro',
     email: 'nivelmonteiro@outlook.com',
-    headline: 'Strategic Finance & Accounting Analyst | Financial Crime, KYC & Audit (MBA)',
-    location: 'Dublin (City Centre / IFSC)',
-    visaStatus: 'Stamp 1G (Third Level Graduate / Full Work Rights)',
+    headline: 'Financial Analyst & Fund Accountant | NAV Accounting, FP&A, KYC & Audit (MBA)',
+    location: 'Dublin',
+    visaStatus: 'Stamp 1G',
     phone: '+353 89 984 7924',
     eircode: 'D02 X285',
     linkedinUrl: 'https://linkedin.com/in/nivelmonteiro',
@@ -175,8 +194,8 @@ let credentialsStore: CredentialRecord[] = [
     name: 'Aoife Murphy',
     email: 'aoife.murphy.irl@eirecareers.ie',
     headline: 'Senior Full Stack Developer (React / Node / AWS)',
-    location: 'Dublin (Silicon Docks / City)',
-    visaStatus: 'EU/EEA/Irish Citizen',
+    location: 'Dublin',
+    visaStatus: 'EU/EEA Citizen',
     phone: '+353 87 123 4567',
     eircode: 'D02 X285',
     linkedinUrl: 'https://linkedin.com/in/aoifemurphy-dev',
@@ -189,8 +208,8 @@ let credentialsStore: CredentialRecord[] = [
     name: 'Rahul Sharma',
     email: 'rahul.sharma@eirecareers.ie',
     headline: 'Data Scientist & ML Engineer (NFQ Level 9 UCD Graduate)',
-    location: 'Dublin (County / Suburbs)',
-    visaStatus: 'Stamp 1G (Third Level Graduate)',
+    location: 'Dublin',
+    visaStatus: 'Stamp 1G',
     phone: '+353 89 987 6543',
     eircode: 'D04 T294',
     linkedinUrl: 'https://linkedin.com/in/rahulsharma-ds',
@@ -204,7 +223,7 @@ let credentialsStore: CredentialRecord[] = [
     email: 'ciaran.oconnor@eirecareers.ie',
     headline: 'Product Manager & Scrum Master (Fintech / IFSC)',
     location: 'Cork',
-    visaStatus: 'Stamp 4 (Full Work Rights)',
+    visaStatus: 'Stamp 4',
     phone: '+353 85 456 7890',
     eircode: 'T12 A345',
     linkedinUrl: 'https://linkedin.com/in/ciaranoconnor-pm',
@@ -218,7 +237,7 @@ let credentialsStore: CredentialRecord[] = [
     email: 'elena.rossi@eirecareers.ie',
     headline: 'DevOps & Cloud Infrastructure Specialist',
     location: 'Galway',
-    visaStatus: 'Critical Skills (CSEP Eligible)',
+    visaStatus: 'Stamp 4',
     phone: '+353 83 321 0987',
     eircode: 'H91 V890',
     linkedinUrl: 'https://linkedin.com/in/elenarossi-cloud',
@@ -411,7 +430,7 @@ app.get('/api/external/jobs', async (req: Request, res: Response) => {
         isRemote: true,
         salary: '€85,000 - €110,000',
         tags: ['Python', 'PyTorch', 'GenAI', 'LLMs', 'Azure'],
-        description: 'Accenture global R&D innovation center in Dublin is seeking an experienced Data Scientist to deploy generative AI prototypes and enterprise recommendation systems. Stamp 4 / Stamp 1G / CSEP sponsorship available.',
+        description: 'Accenture global R&D innovation center in Dublin is seeking an experienced Data Scientist to deploy generative AI prototypes and enterprise recommendation systems. Stamp 4 / Stamp 1G / Stamp 1 work authorization welcome.',
         url: 'https://accenture.com/careers',
         postedDate: '1 day ago',
         category: 'Data & AI'
@@ -579,54 +598,72 @@ function generateSmartFallbackResume(params: {
   const phone = userProfile?.phone || '+353 89 984 7924';
   const location = userProfile?.location || 'Dublin, Ireland';
   const eircode = userProfile?.eircode || 'D02 X285';
-  const visaStatus = userProfile?.visaStatus || 'Stamp 1G (Full Work Rights in Ireland)';
+  const visaStatus = userProfile?.visaStatus !== undefined ? userProfile.visaStatus : 'Stamp 1G';
   const linkedin = userProfile?.linkedinUrl || 'https://linkedin.com/in/nivelmonteiro';
   const github = userProfile?.githubUrl || '';
 
   const experiences: any[] = [];
 
-  if (resumeText.includes('Finkasturi') || resumeText.includes('American Eye') || resumeText.includes('RNS') || fullName.includes('Nivel')) {
+  if (resumeText.includes('Finkasturi') || resumeText.includes('American Eye') || resumeText.includes('RNS') || resumeText.includes('Bombay') || fullName.includes('Nivel')) {
     experiences.push({
       id: 'exp-1',
-      company: 'Finkasturi Technologies / Advisory',
-      role: `Strategic Finance & Compliance Analyst (Targeting: ${targetRole})`,
-      location: 'Remote / Dublin Liaison',
+      company: 'Finkasturi Technologies / Strategic Advisory',
+      role: `Financial Analyst (Freelance / Advisory)`,
+      location: 'Corporate Advisory, Financial Modeling & Strategy',
       startDate: 'Nov 2024',
       endDate: 'Present',
       isCurrent: true,
       highlights: [
-        `Spearheaded financial analysis, audit governance, and operational analytics aligning with Irish and European regulatory frameworks for ${targetCo}.`,
-        'Conducted end-to-end KYC/AML diligence and internal controls, reducing verification cycle time by 35% with zero audit deficiencies.',
-        'Engineered variance and forecasting models in Excel/PowerBI, delivering data-backed insights for executive decision-makers.',
-        'Ensured strict compliance with corporate governance, GDPR privacy guidelines, and international reporting standards.'
+        `Spearhead full-cycle corporate financial modeling, multi-scenario forecasting, and budget variance analyses to support strategic executive decisions.`,
+        'Execute end-to-end KYC/AML customer due diligence, sanctions screening, and financial crime risk profiling for international corporate client portfolios.',
+        'Engineer dynamic KPI & liquidity dashboards in Advanced MS Excel and Power BI, tracking operating burn rates, cash flow, and margin performance.',
+        'Develop DCF valuation models, sensitivity analyses, and investment memoranda for board presentations and investor due diligence review.',
+        'Ensure rigorous compliance with international reporting standards, statutory frameworks, and data protection guidelines.'
       ]
     });
     experiences.push({
       id: 'exp-2',
-      company: 'American Eye & Retina Care',
-      role: 'Accounting & Financial Analyst',
-      location: 'Mumbai / Bangalore',
+      company: 'American Eye & Retina Care Pvt. Ltd.',
+      role: 'Accountant & Financial Analyst',
+      location: 'Healthcare Financial Operations & Multi-Branch Accounting',
       startDate: 'Aug 2022',
       endDate: 'Aug 2023',
       isCurrent: false,
       highlights: [
-        'Managed end-to-end month-end closures, accounts reconciliation, and balance sheet integrity for multi-branch operations.',
-        'Automated financial reporting pipelines using QuickBooks and ERP solutions, saving 15+ hours per closing cycle.',
-        'Audited vendor contracts and billing records, identifying €18k+ in billing discrepancies and optimizing working capital efficiency.'
+        'Directed full-cycle financial reporting, ledger maintenance, and final accounts finalization under GAAP/IFRS standards with 100% statutory compliance.',
+        'Streamlined accounts reconciliation and billing workflows, reducing monthly close turnaround time by 20% while eliminating reporting bottlenecks.',
+        'Led cross-departmental internal audits and balance sheet reconciliations, identifying cost anomalies and enhancing working capital efficiency.',
+        'Designed structured cash flow forecasting models that improved short-term liquidity management and vendor settlement cycles.'
       ]
     });
     experiences.push({
       id: 'exp-3',
-      company: 'RNS & Associates (Chartered Accountants)',
-      role: 'Finance, Tax & Audit Associate',
-      location: 'Bangalore, India',
-      startDate: 'Jun 2019',
-      endDate: 'Jun 2022',
+      company: 'RNS & Associates (Chartered Accountants & Tax Practitioners)',
+      role: 'Accounts & Finance Executive',
+      location: 'Statutory Audit, Direct & Indirect Taxation, Corporate Advisory',
+      startDate: 'Aug 2017',
+      endDate: 'Apr 2019',
       isCurrent: false,
       highlights: [
-        'Conducted statutory audits and tax filing compliance under GAAP/IFRS standards across corporate and SME clients.',
-        'Validated financial statements, cash flows, and trial balances with 100% adherence to regulatory compliance checklists.',
-        'Prepared detailed audit findings reports with actionable internal control recommendations for client leadership.'
+        'Executed statutory audits, trial balance reconciliations, and financial statement preparations for corporate and SME clients across multiple industries.',
+        'Managed direct and indirect tax compliance (GST, Income Tax, Sales Tax), ensuring 100% on-time statutory submissions with zero penalties.',
+        'Automated ledger reconciliation and reporting workflows via Advanced Excel, reducing data reconciliation errors by 15%.',
+        'Advised client executives on tax planning strategies, compliance documentation, and financial governance frameworks.'
+      ]
+    });
+    experiences.push({
+      id: 'exp-4',
+      company: 'Bombay Oxygen Corporation Ltd. / Bombay Investment Co. Pvt. Ltd.',
+      role: 'Accounts & Finance Officer',
+      location: 'Treasury, Mutual Fund Accounting, NAV Computation & Statutory Filings',
+      startDate: 'Nov 2014',
+      endDate: 'Aug 2017',
+      isCurrent: false,
+      highlights: [
+        'Managed mutual fund accounting, daily Net Asset Value (NAV) computation, and asset reconciliation under SEBI regulatory guidelines.',
+        'Prepared Tax Deducted at Source (TDS) schedules, statutory service tax filings, and documentation for quarterly and annual external audits.',
+        'Coordinated liquidity management and treasury transactions with banking institutions and asset management houses.',
+        'Negotiated corporate insurance renewals, reducing annual premium costs by 12% while expanding policy coverage.'
       ]
     });
   } else if (isFinanceOrCompliance) {
@@ -634,12 +671,12 @@ function generateSmartFallbackResume(params: {
       id: 'exp-1',
       company: `${targetCo}`,
       role: `Senior ${targetRole}`,
-      location: 'Dublin (IFSC / Silicon Docks), Ireland',
+      location: 'Fintech, Payments & Financial Risk Management',
       startDate: 'Jan 2023',
       endDate: 'Present',
       isCurrent: true,
       highlights: [
-        `Directed financial compliance reviews and regulatory reporting aligned with Central Bank of Ireland and ECB requirements for ${targetCo}.`,
+        `Directed financial compliance reviews and regulatory reporting aligned with international financial compliance frameworks for ${targetCo}.`,
         'Formulated automated transaction monitoring queries, identifying compliance anomalies with 99.4% precision.',
         'Collaborated with cross-functional legal, risk, and data teams to update AML and customer onboarding frameworks.'
       ]
@@ -648,12 +685,12 @@ function generateSmartFallbackResume(params: {
       id: 'exp-2',
       company: 'Global Corporate Advisory Ireland',
       role: 'Financial Analyst & Audit Associate',
-      location: 'Dublin 2, Ireland',
+      location: 'Asset Management & Corporate Financial Advisory',
       startDate: 'Sep 2020',
       endDate: 'Dec 2022',
       isCurrent: false,
       highlights: [
-        'Executed detailed variance analysis and KPI dashboards for European business units, reducing monthly close cycle by 4 days.',
+        'Executed detailed variance analysis and KPI dashboards for business units, reducing monthly close cycle by 4 days.',
         'Ensured full compliance with IFRS accounting guidelines and GDPR data retention protocols.'
       ]
     });
@@ -662,21 +699,21 @@ function generateSmartFallbackResume(params: {
       id: 'exp-1',
       company: `${targetCo}`,
       role: `Lead ${targetRole}`,
-      location: 'Dublin 2, Ireland',
+      location: 'Enterprise Cloud & SaaS Infrastructure',
       startDate: 'Jan 2023',
       endDate: 'Present',
       isCurrent: true,
       highlights: [
         `Spearheaded delivery of core initiatives tailored directly to ${targetRole} requirements, optimizing performance by 38%.`,
-        'Led cross-functional teams across Dublin and European hubs with consistent on-time sprint milestones.',
-        'Maintained 99.9% reliability and full compliance with Irish data protection standards (GDPR).'
+        'Led cross-functional engineering teams with consistent on-time sprint milestones and code excellence.',
+        'Maintained 99.9% reliability and full compliance with GDPR data protection guidelines.'
       ]
     });
     experiences.push({
       id: 'exp-2',
       company: 'Enterprise Solutions Ireland',
       role: `${targetRole} Specialist`,
-      location: 'Dublin / Hybrid Ireland',
+      location: 'Digital Systems & Cloud Consulting',
       startDate: 'Mar 2020',
       endDate: 'Dec 2022',
       isCurrent: false,
@@ -694,18 +731,16 @@ function generateSmartFallbackResume(params: {
           degree: 'Master of Business Administration (MBA) – Finance',
           institution: 'Dublin Business School (DBS)',
           location: 'Dublin, Ireland',
-          year: '2024',
-          nfqLevel: 'NFQ Level 9 (Masters Degree)',
-          gradeOrHonours: 'Honours / First Class Equivalency'
+          year: '2023 – 2025',
+          gradeOrHonours: 'Honours Graduate (NFQ Level 9 Equivalent)'
         },
         {
           id: 'edu-2',
-          degree: 'Bachelor of Business Management (BBM) – Finance & Accounting',
-          institution: 'Bangalore University',
-          location: 'Bangalore, India',
-          year: '2021',
-          nfqLevel: 'NFQ Level 8 (Honours Bachelor Degree)',
-          gradeOrHonours: 'First Class Honours'
+          degree: 'Bachelor of Business Management (BBM) – Accounts & Finance',
+          institution: 'St. Aloysius College, Mangalore University',
+          location: 'Mangalore, India',
+          year: '2011 – 2014',
+          gradeOrHonours: 'First Class Honours (NFQ Level 8 Equivalent)'
         }
       ]
     : [
@@ -715,7 +750,6 @@ function generateSmartFallbackResume(params: {
           institution: 'University College Dublin (UCD)',
           location: 'Dublin, Ireland',
           year: '2023',
-          nfqLevel: 'NFQ Level 9 (Masters)',
           gradeOrHonours: 'First Class Honours (1:1)'
         },
         {
@@ -724,17 +758,51 @@ function generateSmartFallbackResume(params: {
           institution: 'Dublin City University (DCU)',
           location: 'Dublin, Ireland',
           year: '2021',
-          nfqLevel: 'NFQ Level 8 (Honours Bachelor)',
           gradeOrHonours: 'Upper Second Class Honours (2:1)'
         }
       ];
 
   const skills = isFinanceOrCompliance
     ? {
-        technical: ['Financial Modeling', 'Variance Analysis', 'Advanced MS Excel (VLOOKUP, Pivot, XLOOKUP)', 'Power BI', 'SQL', 'SAP FICO', 'QuickBooks', 'Tally Prime'],
-        domain: ['Financial Crime / AML', 'KYC & Due Diligence', 'Statutory Audit', 'IFRS / GAAP', 'Internal Controls', 'Central Bank of Ireland Regulations'],
-        soft: ['Stakeholder Communication', 'Analytical Problem-Solving', 'Cross-Functional Collaboration', 'Executive Reporting'],
-        tools: ['PowerBI', 'Tableau', 'Alteryx', 'SAP ERP', 'Jira', 'MS Office 365']
+        technical: [
+          'Financial Modeling (DCF / LBO)',
+          'NAV Calculation & Asset Pricing',
+          'Cash Flow Forecasting & Budget Variance',
+          'NAV Accounting & Custody Reconciliations',
+          'Advanced MS Excel (XLOOKUP, Pivot, Macros)',
+          'Power BI & Executive KPI Dashboards',
+          'SAP FICO',
+          'QuickBooks',
+          'Tally Prime',
+          'SQL'
+        ],
+        domain: [
+          'Fund Accounting & Mutual Fund Valuations',
+          'KYC / CKYC Customer Due Diligence',
+          'AML Protocols & Sanctions Screening',
+          'Statutory Audit Governance',
+          'GAAP & IFRS Financial Reporting',
+          'Direct & Indirect Taxation (Irish Tax / VAT / TDS)',
+          'Balance Sheet & Asset Reconciliation',
+          'Liquidity & Working Capital Management',
+          'Internal Financial Controls'
+        ],
+        soft: [
+          'Executive Stakeholder Reporting',
+          'Analytical Problem Solving',
+          'Cross-Functional Team Collaboration',
+          'Audit Coordination & Negotiation',
+          'Regulatory Communication'
+        ],
+        tools: [
+          'SAP ERP',
+          'Power BI',
+          'QuickBooks',
+          'MS Office 365',
+          'Alteryx',
+          'Tableau',
+          'Jira'
+        ]
       }
     : {
         technical: ['TypeScript', 'React 19', 'Node.js', 'AWS Cloud', 'PostgreSQL', 'Docker', 'REST APIs'],
@@ -745,10 +813,13 @@ function generateSmartFallbackResume(params: {
 
   const certifications = isFinanceOrCompliance
     ? [
-        'SEBI Certified Financial Analyst',
-        'Certified Anti-Money Laundering Specialist (CAMS Prep / AML Compliance)',
-        'Irish GDPR & Data Protection Certified Practitioner',
-        'Advanced Corporate Financial Analysis'
+        'Diploma in Irish Taxation – University College Dublin (UCD Professional Academy)',
+        'Certified Mutual Fund Distributor – National Institute of Securities Markets (NISM), India',
+        'SAP Certified – ERP Financials (FICO, MM, SD & PP Modules)',
+        'Diploma in Investment Management & Portfolio Strategy',
+        'Advanced Financial Modeling & Valuation – QuickBooks & Advanced MS Excel Certified',
+        'Irish GDPR & Data Protection Regulations Compliance',
+        'AML / KYC & Financial Crime Due Diligence Frameworks'
       ]
     : [
         'AWS Certified Solutions Architect – Associate',
@@ -756,7 +827,8 @@ function generateSmartFallbackResume(params: {
         'Irish GDPR & Data Protection Certified Practitioner'
       ];
 
-  const summary = `Results-driven ${targetRole} with proven experience driving operational excellence, high-precision analytics, and regulatory compliance. Holds ${visaStatus} with full legal entitlement to work in Ireland. Demonstrates a track record of delivering measurable business value for ${targetCo} through rigorous analysis, process automation, and cross-functional leadership.`;
+  const visaPart = visaStatus ? ` Holds ${visaStatus} with full legal entitlement to work in Ireland.` : '';
+  const summary = `Results-driven ${targetRole} with proven experience driving operational excellence, high-precision analytics, and regulatory compliance.${visaPart} Demonstrates a track record of delivering measurable business value for ${targetCo} through rigorous analysis, process automation, and cross-functional leadership.`;
 
   return {
     id: `resume-${Date.now()}`,
@@ -770,7 +842,7 @@ function generateSmartFallbackResume(params: {
       phone,
       location,
       eircode,
-      workEligibility: visaStatus,
+      workEligibility: visaStatus || '',
       linkedin,
       github
     },
@@ -782,8 +854,107 @@ function generateSmartFallbackResume(params: {
     keyAchievements: [
       `CV tailored specifically for ${targetRole} at ${targetCo} adhering to Irish 2-page CV gold standards.`,
       'Recognized for exceptional analytical precision, cross-functional stakeholder communication, and delivery.'
-    ],
-    irishMarketNotes: `CV tailored with standard Irish 2-page format, explicit ${visaStatus} work authorization, Eircode routing, and NFQ Level 8/9 educational equivalencies.`
+    ]
+  };
+}
+
+/**
+ * Normalizes any LLM or raw object into a strictly validated TailoredResume object
+ */
+function normalizeTailoredResume(raw: any, defaults: {
+  userProfile?: any;
+  jobTitle?: string;
+  companyName?: string;
+  jobDescription?: string;
+  existingResume?: string;
+}) {
+  const target = raw?.resume || raw?.cv || raw?.data || raw || {};
+  const fallback = generateSmartFallbackResume(defaults);
+
+  const safeArray = (val: any): string[] => {
+    if (Array.isArray(val)) return val.map(item => String(item).trim()).filter(Boolean);
+    if (typeof val === 'string') return val.split(/[,•\n]+/).map(s => s.trim()).filter(Boolean);
+    return [];
+  };
+
+  const title = String(target.title || `${defaults.jobTitle || 'Professional'} - Tailored Irish CV`);
+  const targetRole = String(target.targetRole || defaults.jobTitle || 'Strategic Professional');
+  const targetCompany = String(target.targetCompany || defaults.companyName || 'Irish Employer');
+
+  const personalInfo = {
+    fullName: String(target.personalInfo?.fullName || target.personalInfo?.name || defaults.userProfile?.name || fallback.personalInfo.fullName),
+    email: String(target.personalInfo?.email || defaults.userProfile?.email || fallback.personalInfo.email),
+    phone: String(target.personalInfo?.phone || defaults.userProfile?.phone || fallback.personalInfo.phone),
+    location: String(target.personalInfo?.location || defaults.userProfile?.location || fallback.personalInfo.location),
+    eircode: String(target.personalInfo?.eircode || defaults.userProfile?.eircode || fallback.personalInfo.eircode),
+    workEligibility: String(target.personalInfo?.workEligibility !== undefined ? target.personalInfo.workEligibility : (defaults.userProfile?.visaStatus || fallback.personalInfo.workEligibility || '')),
+    linkedin: String(target.personalInfo?.linkedin || target.personalInfo?.linkedinUrl || defaults.userProfile?.linkedinUrl || fallback.personalInfo.linkedin || ''),
+    github: String(target.personalInfo?.github || target.personalInfo?.githubUrl || defaults.userProfile?.githubUrl || '')
+  };
+
+  const professionalSummary = String(target.professionalSummary || target.summary || fallback.professionalSummary);
+
+  let skills = fallback.skills;
+  if (target.skills && typeof target.skills === 'object') {
+    if (Array.isArray(target.skills)) {
+      skills = {
+        technical: safeArray(target.skills),
+        domain: [],
+        soft: [],
+        tools: []
+      };
+    } else {
+      skills = {
+        technical: safeArray(target.skills.technical).length > 0 ? safeArray(target.skills.technical) : fallback.skills.technical,
+        domain: safeArray(target.skills.domain).length > 0 ? safeArray(target.skills.domain) : fallback.skills.domain,
+        soft: safeArray(target.skills.soft).length > 0 ? safeArray(target.skills.soft) : fallback.skills.soft,
+        tools: safeArray(target.skills.tools).length > 0 ? safeArray(target.skills.tools) : fallback.skills.tools
+      };
+    }
+  }
+
+  let workExperiences = fallback.workExperiences;
+  if (Array.isArray(target.workExperiences) && target.workExperiences.length > 0) {
+    workExperiences = target.workExperiences.map((exp: any, idx: number) => ({
+      id: String(exp.id || `exp-${idx + 1}`),
+      company: String(exp.company || 'Enterprise'),
+      role: String(exp.role || targetRole),
+      location: String(exp.location || 'Strategic Business & Technology'),
+      startDate: String(exp.startDate || '2022'),
+      endDate: String(exp.endDate || 'Present'),
+      isCurrent: Boolean(exp.isCurrent || (exp.endDate && String(exp.endDate).toLowerCase().includes('present'))),
+      highlights: safeArray(exp.highlights).length > 0 ? safeArray(exp.highlights) : ['Contributed to high-impact deliverables meeting strategic targets.']
+    }));
+  }
+
+  let education = fallback.education;
+  if (Array.isArray(target.education) && target.education.length > 0) {
+    education = target.education.map((edu: any, idx: number) => ({
+      id: String(edu.id || `edu-${idx + 1}`),
+      degree: String(edu.degree || 'Degree'),
+      institution: String(edu.institution || 'University'),
+      location: String(edu.location || 'Ireland'),
+      year: String(edu.year || '2023'),
+      gradeOrHonours: edu.gradeOrHonours ? String(edu.gradeOrHonours) : undefined
+    }));
+  }
+
+  const certifications = safeArray(target.certifications).length > 0 ? safeArray(target.certifications) : fallback.certifications;
+  const keyAchievements = safeArray(target.keyAchievements).length > 0 ? safeArray(target.keyAchievements) : fallback.keyAchievements;
+
+  return {
+    id: `resume-${Date.now()}`,
+    title,
+    targetRole,
+    targetCompany,
+    createdAt: new Date().toISOString(),
+    personalInfo,
+    professionalSummary,
+    skills,
+    workExperiences,
+    education,
+    certifications,
+    keyAchievements
   };
 }
 
@@ -804,20 +975,23 @@ app.post('/api/ai/tailor-resume', async (req: Request, res: Response) => {
 You tailor resumes STRICTLY adhering to standard Irish Job Market conventions:
 1. Concise 2-page max structure, crisp modern layout.
 2. NO headshots/photos, NO personal marital/age status.
-3. Explicit right to work / Irish visa status (e.g. "Stamp 4 - Full Work Rights", "Stamp 1G Graduate Visa", "EU/EEA Citizen").
-4. Contact info formatted for Ireland (+353 mobile, Eircode, Irish County/City, LinkedIn).
-5. Education framed with Irish National Framework of Qualifications (NFQ Level 8 Honours Bachelor, NFQ Level 9 Masters, etc.).
-6. High-impact bullet points with Quantifiable STAR methodology (Action verb + quantifiable impact + business value).
-7. If an existing resume/CV is provided, PRESERVE the real career history, companies, dates, projects, and educational background from the existing resume, but RE-ENGINEER every bullet point and summary to align precisely with the keywords, required skills, and nuances of the target Job Description (${jobTitle} at ${companyName}).
+3. Explicit right to work / Irish visa status (e.g. "Stamp 4", "Stamp 1G", "EU/EEA Citizen").
+4. Contact info formatted for Ireland (+353 mobile, Eircode, Irish city name like Dublin, Cork, Galway, etc., LinkedIn).
+5. In Work Experience entries, for the 'location' field, specify the Firm's Nature of Business / Industry (e.g. "Fintech & Payments", "Asset Management & Advisory", "Enterprise SaaS", "Healthcare Technology", "Chartered Accountancy & Audit") instead of city names.
+6. Education must include degree, institution, year, and honours/grade if applicable. Do NOT mention NFQ levels.
+7. High-impact bullet points with Quantifiable STAR methodology (Action verb + quantifiable impact + business value).
+8. Do NOT mention Central Bank of Ireland or specific national bank regulators unless specifically in the candidate's original resume or target job description. Focus on universal compliance, governance, and analytical standards.
+9. Do NOT output recruiter notes or irishMarketNotes.
+10. If an existing resume/CV is provided, PRESERVE the real career history, companies, dates, projects, and educational background from the existing resume, but RE-ENGINEER every bullet point and summary to align precisely with the keywords, required skills, and nuances of the target Job Description (${jobTitle} at ${companyName}).
 Return valid JSON only matching the requested schema.`;
 
   const userPrompt = `Candidate Details:
 Name: ${userProfile?.name || 'Professional'}
 Email: ${userProfile?.email || 'user@example.ie'}
 Phone: ${userProfile?.phone || '+353 87 123 4567'}
-Location: ${userProfile?.location || 'Dublin, Ireland'}
+Location: ${userProfile?.location || 'Dublin'}
 Eircode: ${userProfile?.eircode || 'D02 X285'}
-Work Eligibility: ${userProfile?.visaStatus || 'EU/EEA/Irish Citizen'}
+Work Eligibility: ${userProfile?.visaStatus || 'EU/EEA Citizen'}
 Headline/Background: ${userProfile?.headline || ''}
 
 Target Job Title: ${jobTitle}
@@ -831,20 +1005,21 @@ ${existingResume || userProfile?.headline || 'Relevant experience in modern tech
 Instructions:
 1. Extract and preserve the candidate's actual job roles, companies, dates, and educational history from the existing resume.
 2. Re-write and tailor the bullet points and professional summary to prominently showcase qualifications matching the Target Job Description.
-3. Apply Irish 2-page CV gold standards (No photo, right-to-work header, Eircode routing, NFQ levels).
+3. Apply Irish 2-page CV gold standards (No photo, right-to-work header, Eircode routing).
+4. In workExperiences, set 'location' to the Firm's Nature of Business / Industry (e.g. 'Fintech & Digital Payments', 'Asset Management', 'Chartered Accountancy').
+5. Do NOT include NFQ levels or recruiter notes.
 
 Create a complete, polished, tailored Irish CV in JSON format with:
 - title
 - targetRole
 - targetCompany
 - personalInfo (fullName, email, phone, location, eircode, workEligibility, linkedin, github)
-- professionalSummary (3-4 impactful sentences showcasing Irish market readiness and alignment with the job description)
+- professionalSummary (3-4 impactful sentences showcasing market readiness and alignment with the job description)
 - skills: { technical: string[], domain: string[], soft: string[], tools: string[] }
-- workExperiences: array of { id, company, role, location, startDate, endDate, isCurrent, highlights: string[] (3-5 quantifiable bullets per role matching the JD) }
-- education: array of { id, degree, institution, location, year, nfqLevel, gradeOrHonours }
+- workExperiences: array of { id, company, role, location (Firm Nature of Business / Industry), startDate, endDate, isCurrent, highlights: string[] (3-5 quantifiable bullets per role matching the JD) }
+- education: array of { id, degree, institution, location, year, gradeOrHonours }
 - certifications: string[]
-- keyAchievements: string[]
-- irishMarketNotes: string (quick note explaining how this CV was tailored from their existing experience for this specific job description in Ireland)`;
+- keyAchievements: string[]`;
 
   try {
     const parsed = await callGeminiJSON({
@@ -853,9 +1028,15 @@ Create a complete, polished, tailored Irish CV in JSON format with:
       temperature: 0.3
     });
 
-    parsed.id = `resume-${Date.now()}`;
-    parsed.createdAt = new Date().toISOString();
-    return res.json({ resume: parsed, remainingQuota: currentRemaining });
+    const normalized = normalizeTailoredResume(parsed, {
+      userProfile,
+      jobTitle,
+      companyName,
+      jobDescription,
+      existingResume
+    });
+
+    return res.json({ resume: normalized, remainingQuota: currentRemaining });
   } catch (err: any) {
     console.warn('Gemini generate resume note (using smart fallback):', err?.message || err);
     const fallbackResume = generateSmartFallbackResume({
@@ -1148,7 +1329,7 @@ Focus Area: ${focusArea || 'Competency STAR framework, Irish culture, technical 
           id: 'q-4',
           category: 'Salary & Visa',
           question: 'What are your salary expectations for this role in Ireland, and what is your current work authorization status?',
-          whyAsked: 'Verifying budget alignment and confirming right to work in Ireland (Stamp 1G, Stamp 4, EU Citizen, or CSEP).',
+          whyAsked: 'Verifying budget alignment and confirming right to work in Ireland (Stamp 1G, Stamp 4, EU/EEA Citizen, Stamp 1).',
           starFramework: {
             situation: 'Recruiter inquiry regarding compensation expectations and work authorization in Ireland.',
             task: 'State compensation expectations professionally within Irish market norms while confirming immediate eligibility.',
