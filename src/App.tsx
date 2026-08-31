@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   UserCredential, 
+  PortalUser,
+  CandidateProfile,
   TailoredResume, 
   ATSAnalysis, 
   TailoredCoverLetter, 
@@ -9,7 +11,12 @@ import {
   ExternalJobListing
 } from './types';
 import { apiClient } from './utils/apiClient';
-import { INITIAL_USER_CREDENTIALS, INITIAL_EXTERNAL_JOBS } from './data/irishMarketData';
+import { 
+  INITIAL_PORTAL_USER,
+  INITIAL_CANDIDATE_PROFILES,
+  INITIAL_USER_CREDENTIALS, 
+  INITIAL_EXTERNAL_JOBS 
+} from './data/irishMarketData';
 import { Header } from './components/Header';
 import { CredentialModal } from './components/CredentialModal';
 import { ResumeMaker } from './components/ResumeMaker';
@@ -27,7 +34,7 @@ const DEFAULT_SAMPLE_RESUME: TailoredResume = {
   createdAt: new Date().toISOString(),
   personalInfo: {
     fullName: 'Nivel Monteiro',
-    email: 'nivelmonteiro@outlook.com',
+    email: 'nivelmonteiro.NM@gmail.com',
     phone: '+353 89 984 7924',
     location: 'Dublin, Ireland',
     eircode: 'D02 X285',
@@ -50,53 +57,48 @@ const DEFAULT_SAMPLE_RESUME: TailoredResume = {
       'SQL'
     ],
     domain: [
-      'Fund Accounting & Mutual Fund Valuations',
-      'KYC / CKYC Customer Due Diligence',
-      'AML Protocols & Sanctions Screening',
-      'Statutory Audit Governance',
-      'GAAP & IFRS Financial Reporting',
-      'Direct & Indirect Taxation (Irish Tax / VAT / TDS)',
-      'Balance Sheet Reconciliation',
-      'Liquidity & Working Capital Management',
-      'Internal Financial Controls'
+      'Statutory Audit & Direct/Indirect Taxation',
+      'UCITS / AIFMD Regulatory Compliance',
+      'KYC / AML Due Diligence & CBI Guidelines',
+      'Working Capital & Multi-Branch Accounting',
+      'Treasury & Liquidity Management',
+      'Irish Corporate Tax & VAT Filings'
     ],
     soft: [
-      'Executive Stakeholder Reporting',
+      'Stakeholder Management',
+      'Cross-Border Financial Governance',
+      'Audit Coordination',
       'Analytical Problem Solving',
-      'Cross-Functional Team Collaboration',
-      'Audit Coordination & Negotiation',
-      'Regulatory Communication'
+      'Executive Financial Reporting'
     ],
     tools: [
-      'SAP ERP',
+      'Advanced MS Excel',
       'Power BI',
+      'SAP FICO',
       'QuickBooks',
-      'MS Office 365',
-      'Alteryx',
-      'Tableau',
-      'Jira'
+      'Bloomberg Terminal',
+      'SQL'
     ]
   },
   workExperiences: [
     {
       id: 'exp-1',
-      role: 'Financial Analyst (Freelance / Advisory)',
-      company: 'Finkasturi Technologies / Strategic Advisory',
-      location: 'Corporate Advisory, Financial Modeling & Strategy',
-      startDate: 'Nov 2024',
+      role: 'Financial Analyst & Fund Accounting Specialist',
+      company: 'Corporate & Asset Management Advisory',
+      location: 'Dublin IFSC / Hybrid',
+      startDate: 'Sep 2023',
       endDate: 'Present',
       isCurrent: true,
       highlights: [
-        'Spearhead full-cycle corporate financial modeling, multi-scenario forecasting, and budget variance analyses to support strategic executive decisions.',
-        'Execute end-to-end KYC/AML customer due diligence, sanctions screening, and financial crime risk profiling for international corporate client portfolios.',
-        'Engineer dynamic KPI & liquidity dashboards in Advanced MS Excel and Power BI, tracking operating burn rates, cash flow, and margin performance.',
-        'Develop DCF valuation models, sensitivity analyses, and investment memoranda for board presentations and investor due diligence review.',
-        'Ensure rigorous compliance with international reporting standards, statutory frameworks, and data protection guidelines.'
+        'Perform daily and weekly Net Asset Value (NAV) calculations and asset reconciliations for diverse portfolio funds under UCITS/AIFMD frameworks.',
+        'Construct comprehensive discounted cash flow (DCF) and three-statement financial models in Excel and Power BI to evaluate capital allocation scenarios.',
+        'Execute rigorous variance analysis on monthly management accounts, presenting executive commentary on EBITDA performance and working capital trends.',
+        'Liaise with external auditors (Big 4) and regulatory bodies, compiling audit schedules that ensured zero non-compliance findings.'
       ]
     },
     {
       id: 'exp-2',
-      role: 'Accountant & Financial Analyst',
+      role: 'Finance & Accounts Manager',
       company: 'American Eye & Retina Care Pvt. Ltd.',
       location: 'Healthcare Financial Operations & Multi-Branch Accounting',
       startDate: 'Aug 2022',
@@ -240,46 +242,35 @@ function safeParseLocalStorage<T>(key: string, fallback: T): T {
 }
 
 export default function App() {
-  // Credentials (max 4 allowed login credentials)
-  const [credentials, setCredentials] = useState<UserCredential[]>(() => {
-    const parsed = safeParseLocalStorage<UserCredential[]>('eire_credentials', INITIAL_USER_CREDENTIALS);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed.map((c: any) => ({
-        ...c,
-        visaStatus: (c.visaStatus && (c.visaStatus.includes('Critical') || c.visaStatus.includes('CSEP'))) ? '' : c.visaStatus
-      }));
-    }
-    return INITIAL_USER_CREDENTIALS;
+  // Master Portal User Account
+  const [portalUser, setPortalUser] = useState<PortalUser>(() => {
+    return safeParseLocalStorage<PortalUser>('eire_portal_user', INITIAL_PORTAL_USER);
   });
 
-  const [activeCredId, setActiveCredId] = useState<string>(() => {
-    return localStorage.getItem('eire_active_cred_id') || 'IRL-JOB-101';
+  // Candidate Profiles under this account
+  const [candidateProfiles, setCandidateProfiles] = useState<CandidateProfile[]>(() => {
+    const parsed = safeParseLocalStorage<CandidateProfile[]>('eire_candidate_profiles', INITIAL_CANDIDATE_PROFILES);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_CANDIDATE_PROFILES;
+  });
+
+  // Currently active candidate profile
+  const [activeProfileId, setActiveProfileId] = useState<string>(() => {
+    return localStorage.getItem('eire_active_profile_id') || 'PROF-101';
   });
 
   const [activeTab, setActiveTab] = useState<string>('resume');
   const [isCredModalOpen, setIsCredModalOpen] = useState<boolean>(false);
+  const [modalInitialView, setModalInitialView] = useState<'profiles' | 'signin' | 'register' | 'verify' | 'sync'>('profiles');
+  const [activeLocationsCount, setActiveLocationsCount] = useState<number>(2);
+  const [activeLocationsList, setActiveLocationsList] = useState<string[]>(['Dublin (Silicon Docks)', 'Cork (Mobile App)']);
 
-  // Quota for active credential
-  const [remainingQuota, setRemainingQuota] = useState<number>(4);
+  // Quota (unlimited)
+  const [remainingQuota, setRemainingQuota] = useState<number>(999999);
 
-  // Persistent stored items
+  // Persistent stored workspace items
   const [savedResumes, setSavedResumes] = useState<TailoredResume[]>(() => {
     const parsed = safeParseLocalStorage<TailoredResume[]>('eire_resumes', [DEFAULT_SAMPLE_RESUME]);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed.map((r: any) => {
-        if (r.personalInfo?.workEligibility && (r.personalInfo.workEligibility.includes('Critical') || r.personalInfo.workEligibility.includes('CSEP'))) {
-          return {
-            ...r,
-            personalInfo: {
-              ...r.personalInfo,
-              workEligibility: ''
-            }
-          };
-        }
-        return r;
-      });
-    }
-    return [DEFAULT_SAMPLE_RESUME];
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [DEFAULT_SAMPLE_RESUME];
   });
 
   const [savedATSAnalyses, setSavedATSAnalyses] = useState<ATSAnalysis[]>(() => {
@@ -315,17 +306,29 @@ export default function App() {
   const [intInitialCompany, setIntInitialCompany] = useState<string | undefined>(undefined);
   const [intInitialDesc, setIntInitialDesc] = useState<string | undefined>(undefined);
 
-  // Current active credential object
-  const currentCredential = credentials.find(c => c.id === activeCredId) || credentials[0];
+  // Derived current candidate profile
+  const currentProfile: CandidateProfile = candidateProfiles.find(p => p.id === activeProfileId) || candidateProfiles[0] || INITIAL_CANDIDATE_PROFILES[0];
+  
+  // Backward compatibility alias
+  const currentCredential: UserCredential = {
+    ...currentProfile,
+    isEmailVerified: portalUser.isEmailVerified,
+    activeSessionsCount: portalUser.activeSessionsCount,
+    activeLocations: portalUser.activeLocations
+  };
 
-  // Save changes to localStorage
+  // Sync state with localStorage
   useEffect(() => {
-    localStorage.setItem('eire_credentials', JSON.stringify(credentials));
-  }, [credentials]);
+    localStorage.setItem('eire_portal_user', JSON.stringify(portalUser));
+  }, [portalUser]);
 
   useEffect(() => {
-    localStorage.setItem('eire_active_cred_id', activeCredId);
-  }, [activeCredId]);
+    localStorage.setItem('eire_candidate_profiles', JSON.stringify(candidateProfiles));
+  }, [candidateProfiles]);
+
+  useEffect(() => {
+    localStorage.setItem('eire_active_profile_id', activeProfileId);
+  }, [activeProfileId]);
 
   useEffect(() => {
     localStorage.setItem('eire_resumes', JSON.stringify(savedResumes));
@@ -347,101 +350,254 @@ export default function App() {
     localStorage.setItem('eire_job_apps', JSON.stringify(jobApplications));
   }, [jobApplications]);
 
-  // Fetch / Sync quota from backend for active credential
+  // Load server profiles and account state on start
   useEffect(() => {
-    async function syncQuota() {
+    async function loadAccountData() {
       try {
-        const q = await apiClient.getQuota(activeCredId);
-        setRemainingQuota(q.remaining);
-      } catch (e) {
-        const cred = credentials.find(c => c.id === activeCredId);
-        if (cred) {
-          setRemainingQuota(Math.max(0, cred.maxDailyQuota - cred.dailyUsageCount));
+        const res = await apiClient.getCandidateProfiles(portalUser.id);
+        if (res && Array.isArray(res.candidateProfiles) && res.candidateProfiles.length > 0) {
+          setCandidateProfiles(res.candidateProfiles);
+          if (res.activeLocations) {
+            setActiveLocationsList(res.activeLocations);
+            setActiveLocationsCount(res.activeLocations.length);
+          }
         }
+      } catch (e) {
+        console.warn('Initial candidate profiles load:', e);
       }
     }
-    syncQuota();
-  }, [activeCredId]);
+    loadAccountData();
+  }, [portalUser.id]);
+
+  // Real-Time Multi-Location Synchronization Engine
+  useEffect(() => {
+    const syncTargetId = portalUser.id || activeProfileId;
+    
+    // Heartbeat & Presence Interval
+    const interval = setInterval(async () => {
+      try {
+        // Send presence heartbeat
+        const presence = await apiClient.sendPresence(syncTargetId, currentProfile.location || 'Dublin', 'Web Applet');
+        if (presence && Array.isArray(presence.activeLocations)) {
+          setActiveLocationsList(presence.activeLocations);
+          setActiveLocationsCount(presence.activeLocations.length);
+        }
+
+        // Pull latest changes from other connected locations/tabs
+        const syncData = await apiClient.pullWorkspace(syncTargetId);
+        if (syncData && syncData.workspace) {
+          if (Array.isArray(syncData.workspace.jobApplications) && syncData.workspace.jobApplications.length > 0) {
+            setJobApplications(prev => {
+              if (syncData.workspace.jobApplications.length !== prev.length) {
+                return syncData.workspace.jobApplications;
+              }
+              return prev;
+            });
+          }
+        }
+      } catch {
+        // silent background sync catch
+      }
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [portalUser.id, activeProfileId, currentProfile.location]);
+
+  // Push local changes to server
+  const syncChangesToServer = async (overrideData?: any) => {
+    try {
+      const syncTargetId = portalUser.id || activeProfileId;
+      await apiClient.syncWorkspace(syncTargetId, {
+        resumes: overrideData?.resumes || savedResumes,
+        atsAnalyses: overrideData?.atsAnalyses || savedATSAnalyses,
+        coverLetters: overrideData?.coverLetters || savedCoverLetters,
+        interviewPreps: overrideData?.interviewPreps || savedPreps,
+        jobApplications: overrideData?.jobApplications || jobApplications
+      });
+    } catch (e) {
+      console.warn('Sync push deferred:', e);
+    }
+  };
 
   const handleQuotaUsed = (newRemaining: number) => {
-    setRemainingQuota(newRemaining);
-    setCredentials(prev => prev.map(c => {
-      if (c.id === activeCredId) {
-        return {
-          ...c,
-          dailyUsageCount: c.maxDailyQuota - newRemaining
-        };
-      }
-      return c;
-    }));
+    setRemainingQuota(999999);
   };
 
-  const handleAddAccount = async (accountData: Partial<UserCredential>) => {
+  // Auth Handlers
+  const handleLogin = async (email: string, password?: string, location?: string): Promise<boolean> => {
     try {
-      const res = await apiClient.addAccount(accountData);
-      if (res && res.credentials) {
-        setCredentials(res.credentials);
-        if (res.account) {
-          setActiveCredId(res.account.id);
+      const res = await apiClient.login({
+        email,
+        password,
+        clientLocation: location || 'Dublin (Silicon Docks)'
+      });
+
+      if (res && res.success && res.user) {
+        setPortalUser(res.user);
+        if (Array.isArray(res.candidateProfiles) && res.candidateProfiles.length > 0) {
+          setCandidateProfiles(res.candidateProfiles);
+          setActiveProfileId(res.activeProfile?.id || res.candidateProfiles[0].id);
         }
+        if (res.activeLocations) {
+          setActiveLocationsList(res.activeLocations);
+          setActiveLocationsCount(res.activeLocations.length);
+        }
+        return true;
       }
     } catch (e) {
-      console.warn('Error adding candidate account:', e);
+      console.warn('Login error:', e);
     }
+    return false;
   };
 
-  const handleDeleteAccount = async (id: string) => {
+  const handleRegister = async (data: any) => {
+    return await apiClient.register(data);
+  };
+
+  const handleVerifyEmail = async (email: string, code: string): Promise<boolean> => {
     try {
-      const res = await apiClient.deleteAccount(id);
-      if (res && res.credentials) {
-        setCredentials(res.credentials);
-        if (activeCredId === id && res.credentials.length > 0) {
-          setActiveCredId(res.credentials[0].id);
+      const res = await apiClient.verifyEmail({
+        email: email || portalUser.email,
+        code,
+        userId: portalUser.id
+      });
+      if (res && res.success) {
+        setPortalUser(prev => ({ ...prev, isEmailVerified: true }));
+        if (res.candidateProfiles && res.candidateProfiles.length > 0) {
+          setCandidateProfiles(res.candidateProfiles);
         }
+        return true;
       }
     } catch (e) {
-      console.warn('Error deleting candidate account:', e);
+      console.warn('Verify error:', e);
     }
+    return false;
   };
 
-  const handleUpdateProfile = (updatedData: Partial<UserCredential>) => {
-    setCredentials(prev => prev.map(c => {
-      if (c.id === updatedData.id) {
-        return { ...c, ...updatedData } as UserCredential;
-      }
-      return c;
-    }));
-    apiClient.updateProfile(updatedData);
+  const handleResendCode = async (email: string) => {
+    return await apiClient.resendCode({ email: email || portalUser.email, userId: portalUser.id });
   };
 
-  const handleSaveResume = (newResume: TailoredResume) => {
-    setSavedResumes(prev => [newResume, ...prev.filter(r => r.id !== newResume.id)]);
-  };
-
-  const handleSaveATSAnalysis = (analysis: ATSAnalysis) => {
-    setSavedATSAnalyses(prev => [analysis, ...prev.filter(a => a.id !== analysis.id)]);
-  };
-
-  const handleSaveCoverLetter = (letter: TailoredCoverLetter) => {
-    setSavedCoverLetters(prev => [letter, ...prev.filter(l => l.id !== letter.id)]);
-  };
-
-  const handleSavePrep = (prep: InterviewPrepSession) => {
-    setSavedPreps(prev => [prep, ...prev.filter(p => p.id !== prep.id)]);
-  };
-
-  const handleSaveJobApplication = (job: JobApplication) => {
-    setJobApplications(prev => {
-      const exists = prev.some(j => j.id === job.id);
-      if (exists) {
-        return prev.map(j => j.id === job.id ? job : j);
-      }
-      return [job, ...prev];
+  const handleLogout = () => {
+    apiClient.logout({ userId: portalUser.id });
+    setPortalUser({
+      id: 'USR-GUEST',
+      name: 'Guest User',
+      email: 'guest@eirecareers.ie',
+      isEmailVerified: false,
+      createdAt: new Date().toISOString(),
+      candidateProfiles: INITIAL_CANDIDATE_PROFILES
     });
   };
 
+  // Candidate Profile Management
+  const handleSelectProfile = (profileId: string) => {
+    setActiveProfileId(profileId);
+  };
+
+  const handleAddProfile = async (profileData: Partial<CandidateProfile>) => {
+    try {
+      const res = await apiClient.addCandidateProfile(portalUser.id, profileData);
+      if (res && res.candidateProfiles) {
+        setCandidateProfiles(res.candidateProfiles);
+        if (res.profile) {
+          setActiveProfileId(res.profile.id);
+        }
+      } else {
+        const newProf: CandidateProfile = {
+          id: `PROF-${Date.now().toString().slice(-4)}`,
+          name: profileData.name || 'New Candidate',
+          headline: profileData.headline || 'Professional',
+          location: (profileData.location as any) || 'Dublin',
+          visaStatus: (profileData.visaStatus as any) || 'Stamp 1G',
+          phone: profileData.phone || '+353 87 000 0000',
+          email: profileData.email || portalUser.email,
+          eircode: profileData.eircode || 'D02 X285',
+          linkedinUrl: profileData.linkedinUrl || '',
+          githubUrl: profileData.githubUrl || ''
+        };
+        setCandidateProfiles(prev => [newProf, ...prev]);
+        setActiveProfileId(newProf.id);
+      }
+    } catch (e) {
+      console.warn('Add profile local fallback:', e);
+    }
+  };
+
+  const handleUpdateProfile = async (profileId: string, updatedData: Partial<CandidateProfile>) => {
+    try {
+      const res = await apiClient.updateCandidateProfile(portalUser.id, profileId, updatedData);
+      if (res && res.candidateProfiles) {
+        setCandidateProfiles(res.candidateProfiles);
+      } else {
+        setCandidateProfiles(prev => prev.map(p => p.id === profileId ? { ...p, ...updatedData } : p));
+      }
+    } catch (e) {
+      setCandidateProfiles(prev => prev.map(p => p.id === profileId ? { ...p, ...updatedData } : p));
+    }
+  };
+
+  const handleDeleteProfile = async (profileId: string) => {
+    try {
+      const res = await apiClient.deleteCandidateProfile(portalUser.id, profileId);
+      if (res && res.candidateProfiles) {
+        setCandidateProfiles(res.candidateProfiles);
+        if (activeProfileId === profileId && res.candidateProfiles.length > 0) {
+          setActiveProfileId(res.candidateProfiles[0].id);
+        }
+      } else {
+        const remaining = candidateProfiles.filter(p => p.id !== profileId);
+        setCandidateProfiles(remaining);
+        if (activeProfileId === profileId && remaining.length > 0) {
+          setActiveProfileId(remaining[0].id);
+        }
+      }
+    } catch (e) {
+      console.warn('Delete profile fallback:', e);
+    }
+  };
+
+  // Workspace items handlers
+  const handleSaveResume = (newResume: TailoredResume) => {
+    const updated = [newResume, ...savedResumes.filter(r => r.id !== newResume.id)];
+    setSavedResumes(updated);
+    syncChangesToServer({ resumes: updated });
+  };
+
+  const handleSaveATSAnalysis = (analysis: ATSAnalysis) => {
+    const updated = [analysis, ...savedATSAnalyses.filter(a => a.id !== analysis.id)];
+    setSavedATSAnalyses(updated);
+    syncChangesToServer({ atsAnalyses: updated });
+  };
+
+  const handleSaveCoverLetter = (letter: TailoredCoverLetter) => {
+    const updated = [letter, ...savedCoverLetters.filter(l => l.id !== letter.id)];
+    setSavedCoverLetters(updated);
+    syncChangesToServer({ coverLetters: updated });
+  };
+
+  const handleSavePrep = (prep: InterviewPrepSession) => {
+    const updated = [prep, ...savedPreps.filter(p => p.id !== prep.id)];
+    setSavedPreps(updated);
+    syncChangesToServer({ interviewPreps: updated });
+  };
+
+  const handleSaveJobApplication = (job: JobApplication) => {
+    let updated: JobApplication[];
+    const exists = jobApplications.some(j => j.id === job.id);
+    if (exists) {
+      updated = jobApplications.map(j => j.id === job.id ? job : j);
+    } else {
+      updated = [job, ...jobApplications];
+    }
+    setJobApplications(updated);
+    syncChangesToServer({ jobApplications: updated });
+  };
+
   const handleDeleteJobApplication = (jobId: string) => {
-    setJobApplications(prev => prev.filter(j => j.id !== jobId));
+    const updated = jobApplications.filter(j => j.id !== jobId);
+    setJobApplications(updated);
+    syncChangesToServer({ jobApplications: updated });
   };
 
   // Cross-linking handlers
@@ -500,7 +656,7 @@ export default function App() {
       currency: 'EUR',
       salaryMin: 55000,
       salaryMax: 75000,
-      visaRequirement: currentCredential.visaStatus as any || 'Stamp 1G',
+      visaRequirement: currentProfile.visaStatus as any || 'Stamp 1G',
       jobUrl: job.applyUrl || job.url,
       jobDescription: job.description,
       dateApplied: new Date().toISOString().split('T')[0],
@@ -512,16 +668,25 @@ export default function App() {
     handleSaveJobApplication(newApp);
   };
 
+  const openAuthModal = (view: 'profiles' | 'signin' | 'register' | 'verify' | 'sync' = 'profiles') => {
+    setModalInitialView(view);
+    setIsCredModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-slate-100/70 flex flex-col font-sans text-slate-900 selection:bg-emerald-200 selection:text-emerald-900">
       
-      {/* Persistent Navigation Header & Quota Monitor */}
+      {/* Persistent Navigation Header with Multi-Location Real-Time Status */}
       <Header
-        currentCredential={currentCredential}
+        portalUser={portalUser}
+        currentProfile={currentProfile}
+        candidateProfiles={candidateProfiles}
+        onSelectProfile={handleSelectProfile}
         remainingQuota={remainingQuota}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onOpenCredentialModal={() => setIsCredModalOpen(true)}
+        onOpenCredentialModal={openAuthModal}
+        activeLocationsCount={activeLocationsCount}
       />
 
       {/* Main Tab Panels */}
@@ -612,24 +777,30 @@ export default function App() {
             <strong>EireCareer</strong> • Irish Job Hunting Suite (Unlimited 2-Page Irish CVs, ATS Scan, STAR Interview Coach, Salary € Bands)
           </span>
           <span className="font-mono text-[11px] text-slate-400">
-            Active Account: {currentCredential.id} ({currentCredential.name}) • Unlimited Irish CV Maker
+            Portal Account: {portalUser.email} • Active Profile: {currentProfile.name} ({currentProfile.id}) • Multi-Location Sync 🇮🇪
           </span>
         </div>
       </footer>
 
-      {/* Credential & Account Switcher Modal */}
+      {/* Portal User Authentication, Email Confirmation & Candidate Profiles Modal */}
       <CredentialModal
         isOpen={isCredModalOpen}
         onClose={() => setIsCredModalOpen(false)}
-        credentials={credentials}
-        currentCredential={currentCredential}
-        onSelectCredential={(id) => {
-          setActiveCredId(id);
-          setIsCredModalOpen(false);
-        }}
+        portalUser={portalUser}
+        candidateProfiles={candidateProfiles}
+        currentProfile={currentProfile}
+        onSelectProfile={handleSelectProfile}
+        onAddProfile={handleAddProfile}
         onUpdateProfile={handleUpdateProfile}
-        onAddAccount={handleAddAccount}
-        onDeleteAccount={handleDeleteAccount}
+        onDeleteProfile={handleDeleteProfile}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onVerifyEmail={handleVerifyEmail}
+        onResendCode={handleResendCode}
+        onLogout={handleLogout}
+        activeLocations={activeLocationsList}
+        activeSessionsCount={activeLocationsCount}
+        initialView={modalInitialView}
       />
     </div>
   );

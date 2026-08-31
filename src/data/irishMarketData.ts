@@ -1,4 +1,4 @@
-import { IrishSalaryBenchmark, UserCredential, ExternalJobListing, IrishRecruitmentAgency } from '../types';
+import { IrishSalaryBenchmark, UserCredential, CandidateProfile, PortalUser, ExternalJobListing, IrishRecruitmentAgency } from '../types';
 
 export const IRISH_JOB_PORTALS = [
   {
@@ -133,20 +133,22 @@ export const IRISH_RECRUITMENT_AGENCIES: IrishRecruitmentAgency[] = [
 ];
 
 
-export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
+export const INITIAL_CANDIDATE_PROFILES: CandidateProfile[] = [
   {
-    id: 'IND-101',
+    id: 'PROF-101',
     name: 'Nivel Monteiro',
-    email: 'nivelmonteiro@outlook.com',
+    email: 'nivelmonteiro.NM@gmail.com',
     headline: 'Financial Analyst & Fund Accountant | NAV Accounting, FP&A, KYC & Audit (MBA)',
     location: 'Dublin',
     visaStatus: 'Stamp 1G',
     phone: '+353 89 984 7924',
     eircode: 'D02 X285',
-    linkedinUrl: 'https://linkedin.com/in/nivelmonteiro'
+    linkedinUrl: 'https://linkedin.com/in/nivelmonteiro',
+    isDefault: true,
+    createdAt: '2026-01-15T09:00:00Z'
   },
   {
-    id: 'IND-102',
+    id: 'PROF-102',
     name: 'Aoife Murphy',
     email: 'aoife.murphy.irl@eirecareers.ie',
     headline: 'Senior Full Stack Developer (React / Node / AWS)',
@@ -155,22 +157,26 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     phone: '+353 87 123 4567',
     eircode: 'D02 X285',
     linkedinUrl: 'https://linkedin.com/in/aoifemurphy-dev',
-    githubUrl: 'https://github.com/aoifemurphy'
+    githubUrl: 'https://github.com/aoifemurphy',
+    isDefault: false,
+    createdAt: '2026-02-01T10:00:00Z'
   },
   {
-    id: 'IND-103',
+    id: 'PROF-103',
     name: 'Rahul Sharma',
     email: 'rahul.sharma@eirecareers.ie',
-    headline: 'Data Scientist & ML Engineer (UCD Graduate)',
+    headline: 'Data Scientist & ML Engineer (NFQ Level 9 UCD Graduate)',
     location: 'Dublin',
     visaStatus: 'Stamp 1G',
     phone: '+353 89 987 6543',
     eircode: 'D04 T294',
     linkedinUrl: 'https://linkedin.com/in/rahulsharma-ds',
-    githubUrl: 'https://github.com/rahulsharma-ai'
+    githubUrl: 'https://github.com/rahulsharma-ai',
+    isDefault: false,
+    createdAt: '2026-02-10T14:30:00Z'
   },
   {
-    id: 'IND-104',
+    id: 'PROF-104',
     name: 'Ciaran O\'Connor',
     email: 'ciaran.oconnor@eirecareers.ie',
     headline: 'Product Manager & Scrum Master (Fintech / Asset Management)',
@@ -178,10 +184,12 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     visaStatus: 'Stamp 4',
     phone: '+353 85 456 7890',
     eircode: 'T12 A345',
-    linkedinUrl: 'https://linkedin.com/in/ciaranoconnor-pm'
+    linkedinUrl: 'https://linkedin.com/in/ciaranoconnor-pm',
+    isDefault: false,
+    createdAt: '2026-02-15T11:00:00Z'
   },
   {
-    id: 'IND-105',
+    id: 'PROF-105',
     name: 'Elena Rossi',
     email: 'elena.rossi@eirecareers.ie',
     headline: 'DevOps & Cloud Infrastructure Specialist',
@@ -190,9 +198,30 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     phone: '+353 83 321 0987',
     eircode: 'H91 V890',
     linkedinUrl: 'https://linkedin.com/in/elenarossi-cloud',
-    githubUrl: 'https://github.com/elenarossi'
+    githubUrl: 'https://github.com/elenarossi',
+    isDefault: false,
+    createdAt: '2026-02-20T16:00:00Z'
   }
 ];
+
+export const INITIAL_PORTAL_USER: PortalUser = {
+  id: 'USR-101',
+  email: 'nivelmonteiro.NM@gmail.com',
+  name: 'Nivel Monteiro',
+  isEmailVerified: true,
+  createdAt: '2026-01-15T09:00:00Z',
+  lastLoginAt: new Date().toISOString(),
+  activeSessionsCount: 2,
+  activeLocations: ['Dublin (Silicon Docks)', 'Cork (Mobile App)'],
+  candidateProfiles: INITIAL_CANDIDATE_PROFILES
+};
+
+export const INITIAL_USER_CREDENTIALS: UserCredential[] = INITIAL_CANDIDATE_PROFILES.map(p => ({
+  ...p,
+  isEmailVerified: true,
+  activeSessionsCount: 1,
+  activeLocations: [p.location || 'Dublin']
+}));
 
 export const IRISH_SALARY_BENCHMARKS: IrishSalaryBenchmark[] = [
   {

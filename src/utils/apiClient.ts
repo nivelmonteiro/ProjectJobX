@@ -1,4 +1,14 @@
-import { UserCredential, TailoredResume, ATSAnalysis, TailoredCoverLetter, InterviewPrepSession, JobApplication, ExternalJobListing } from '../types';
+import { 
+  UserCredential, 
+  CandidateProfile, 
+  PortalUser, 
+  TailoredResume, 
+  ATSAnalysis, 
+  TailoredCoverLetter, 
+  InterviewPrepSession, 
+  JobApplication, 
+  ExternalJobListing 
+} from '../types';
 import { 
   generateClientFallbackResume, 
   generateClientFallbackATS, 
@@ -87,6 +97,215 @@ function safeStorageParse<T>(key: string, fallback: T): T {
 }
 
 export const apiClient = {
+  // --- PORTAL USER AUTHENTICATION METHODS ---
+  async login(params: {
+    email: string;
+    password?: string;
+    clientLocation?: string;
+    clientDevice?: string;
+  }): Promise<{
+    success: boolean;
+    user?: PortalUser;
+    candidateProfiles?: CandidateProfile[];
+    activeProfile?: CandidateProfile;
+    activeLocations?: string[];
+    activeSessionsCount?: number;
+    message?: string;
+    error?: string;
+  }> {
+    try {
+      const res = await safeFetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await safeJson(res);
+      if (data && data.success) {
+        return data;
+      }
+      if (data && data.error) {
+        return { success: false, error: data.error };
+      }
+    } catch (e: any) {
+      console.warn('Login API fallback:', e);
+    }
+    return { success: false, error: 'Unable to connect to portal authentication service.' };
+  },
+
+  async register(userData: {
+    name: string;
+    email: string;
+    password?: string;
+    headline?: string;
+    location?: string;
+    visaStatus?: string;
+    phone?: string;
+    eircode?: string;
+    linkedinUrl?: string;
+    githubUrl?: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    verificationRequired?: boolean;
+    user?: any;
+    codePreview?: string;
+    error?: string;
+  }> {
+    try {
+      const res = await safeFetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      const data = await safeJson(res);
+      if (data) {
+        return data;
+      }
+    } catch (e: any) {
+      console.warn('Register fallback to local:', e);
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    return {
+      success: true,
+      message: `Account created for ${userData.name}! 6-digit confirmation code generated.`,
+      verificationRequired: true,
+      codePreview: code
+    };
+  },
+
+  async verifyEmail(params: {
+    email?: string;
+    code: string;
+    userId?: string;
+    credentialId?: string;
+    clientLocation?: string;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+    user?: PortalUser;
+    candidateProfiles?: CandidateProfile[];
+    activeProfile?: CandidateProfile;
+    error?: string;
+  }> {
+    try {
+      const res = await safeFetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await safeJson(res);
+      if (data) {
+        return data;
+      }
+    } catch (e: any) {
+      console.warn('Verify email local fallback:', e);
+    }
+    return { success: false, error: 'Verification failed. Please check the code and try again.' };
+  },
+
+  async resendCode(params: { email?: string; userId?: string; credentialId?: string }): Promise<{ success: boolean; message: string; codePreview?: string }> {
+    try {
+      const res = await safeFetch('/api/auth/resend-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await safeJson(res);
+      if (data) {
+        return data;
+      }
+    } catch (e: any) {
+      console.warn('Resend code fallback:', e);
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    return {
+      success: true,
+      message: 'A new 6-digit verification code was generated.',
+      codePreview: code
+    };
+  },
+
+  async logout(params: { userId?: string; clientLocation?: string }): Promise<{ success: boolean }> {
+    try {
+      await safeFetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+    } catch {
+      // silent
+    }
+    return { success: true };
+  },
+
+  // --- CANDIDATE PROFILES MANAGEMENT ---
+  async getCandidateProfiles(userId?: string): Promise<{ candidateProfiles: CandidateProfile[]; activeLocations?: string[] }> {
+    try {
+      const res = await safeFetch(`/api/user/profiles?userId=${encodeURIComponent(userId || '')}`);
+      const data = await safeJson(res);
+      if (data && Array.isArray(data.candidateProfiles)) {
+        return data;
+      }
+    } catch (e) {
+      console.warn('Get candidate profiles fallback:', e);
+    }
+    return { candidateProfiles: [] };
+  },
+
+  async addCandidateProfile(userId: string, profileData: Partial<CandidateProfile>): Promise<{ profile: CandidateProfile; candidateProfiles: CandidateProfile[] } | null> {
+    try {
+      const res = await safeFetch('/api/user/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ...profileData })
+      });
+      return await safeJson(res);
+    } catch (e) {
+      console.warn('Add candidate profile fallback:', e);
+      return null;
+    }
+  },
+
+  async updateCandidateProfile(userId: string, profileId: string, profileData: Partial<CandidateProfile>): Promise<{ profile: CandidateProfile; candidateProfiles: CandidateProfile[] } | null> {
+    try {
+      const res = await safeFetch(`/api/user/profiles/${profileId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ...profileData })
+      });
+      return await safeJson(res);
+    } catch (e) {
+      console.warn('Update candidate profile fallback:', e);
+      return null;
+    }
+  },
+
+  async deleteCandidateProfile(userId: string, profileId: string): Promise<{ candidateProfiles: CandidateProfile[] } | null> {
+    try {
+      const res = await safeFetch(`/api/user/profiles/${profileId}?userId=${encodeURIComponent(userId)}`, {
+        method: 'DELETE'
+      });
+      return await safeJson(res);
+    } catch (e) {
+      console.warn('Delete candidate profile fallback:', e);
+      return null;
+    }
+  },
+
+  // Backward-compatibility profile updater
+  async updateProfile(updatedData: Partial<UserCredential>): Promise<any> {
+    try {
+      const res = await safeFetch('/api/auth/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
+      return await safeJson(res);
+    } catch (e) {
+      console.warn('Update profile API fallback:', e);
+    }
+  },
+
   async getCredentials(): Promise<{ credentials: UserCredential[]; isUnlimited?: boolean }> {
     try {
       const res = await safeFetch('/api/auth/credentials');
@@ -118,7 +337,7 @@ export const apiClient = {
     } catch (e) {
       console.warn('Add account server fallback:', e);
     }
-    const newId = `IND-${Date.now().toString().slice(-4)}`;
+    const newId = `PROF-${Date.now().toString().slice(-4)}`;
     const newAccount: UserCredential = {
       id: accountData.id || newId,
       name: accountData.name || 'New Candidate',
@@ -129,7 +348,11 @@ export const apiClient = {
       phone: accountData.phone || '+353 87 000 0000',
       eircode: accountData.eircode || 'D02 X000',
       linkedinUrl: accountData.linkedinUrl || '',
-      githubUrl: accountData.githubUrl || ''
+      githubUrl: accountData.githubUrl || '',
+      isEmailVerified: true,
+      createdAt: new Date().toISOString(),
+      activeSessionsCount: 1,
+      activeLocations: [accountData.location || 'Dublin']
     };
     const list = safeStorageParse<UserCredential[]>('eire_credentials', []);
     const updated = [...list, newAccount];
@@ -170,44 +393,45 @@ export const apiClient = {
     return { remaining: 999999, maxAllowed: 999999, isUnlimited: true };
   },
 
-  async login(credentialId: string, email?: string): Promise<{ credential: UserCredential; remainingQuota: number; isUnlimited: boolean }> {
+  async syncWorkspace(credentialId: string, workspaceData: Partial<UserDataPayload>): Promise<{ success: boolean; version?: number }> {
     try {
-      const res = await safeFetch('/api/auth/login', {
+      const res = await safeFetch(`/api/sync/workspace/${credentialId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credentialId, email })
+        body: JSON.stringify(workspaceData)
       });
       const data = await safeJson(res);
-      if (data && data.credential) {
-        return { ...data, isUnlimited: true };
-      }
+      if (data) return data;
     } catch (e) {
-      console.warn('Login fallback to local state:', e);
+      console.warn('Workspace sync push deferred:', e);
     }
-    const list = safeStorageParse<UserCredential[]>('eire_credentials', []);
-    const found = list.find(c => c.id === credentialId || (email && c.email.toLowerCase() === email.toLowerCase())) || list[0];
-    return {
-      credential: found,
-      remainingQuota: 999999,
-      isUnlimited: true
-    };
+    return { success: true };
   },
 
-  async updateProfile(profileData: Partial<UserCredential>): Promise<{ credential: UserCredential }> {
+  async pullWorkspace(credentialId: string): Promise<{ workspace: UserDataPayload; activeLocations: string[]; activeSessionsCount: number; version: number } | null> {
     try {
-      const res = await safeFetch('/api/auth/update-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileData)
-      });
+      const res = await safeFetch(`/api/sync/workspace/${credentialId}`);
       const data = await safeJson(res);
-      if (data && data.credential) {
+      if (data && data.workspace) {
         return data;
       }
     } catch (e) {
-      console.warn('Update profile server sync deferred:', e);
+      console.warn('Workspace pull deferred:', e);
     }
-    return { credential: profileData as UserCredential };
+    return null;
+  },
+
+  async sendPresence(credentialId: string, location: string, device: string): Promise<{ activeLocations: string[]; activeSessionsCount: number } | null> {
+    try {
+      const res = await safeFetch('/api/sync/presence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credentialId, location, device })
+      });
+      return await safeJson(res);
+    } catch {
+      return null;
+    }
   },
 
   async getUserData(credentialId: string): Promise<UserDataPayload> {

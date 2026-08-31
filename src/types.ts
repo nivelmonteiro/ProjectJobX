@@ -32,24 +32,72 @@ export type JobStatus =
   | 'Rejected'
   | 'Withdrawn';
 
-export interface UserCredential {
-  id: string; // e.g. "IND-101"
+export interface CandidateProfile {
+  id: string; // e.g. "PROF-101"
   name: string;
-  email: string;
   headline: string;
   location: IrishLocation;
   visaStatus: IrishStampVisa;
-  phone: string; // +353...
+  phone: string;
   eircode?: string;
+  email: string;
   linkedinUrl?: string;
   githubUrl?: string;
   portfolioUrl?: string;
-  dailyUsageCount?: number;
-  lastUsageDate?: string;
-  maxDailyQuota?: number;
+  isDefault?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export type IndividualAccount = UserCredential;
+export interface PortalUser {
+  id: string; // e.g. "USR-101"
+  email: string;
+  name: string;
+  isEmailVerified: boolean;
+  verificationCode?: string;
+  verificationCodeExpiresAt?: number;
+  lastLoginAt?: string;
+  activeSessionsCount?: number;
+  activeLocations?: string[];
+  createdAt: string;
+  candidateProfiles: CandidateProfile[];
+}
+
+export interface UserAccount extends CandidateProfile {
+  isEmailVerified?: boolean;
+  verificationCode?: string;
+  verificationCodeExpiresAt?: number;
+  lastLoginAt?: string;
+  activeSessionsCount?: number;
+  activeLocations?: string[];
+  candidateProfiles?: CandidateProfile[];
+}
+
+export type UserCredential = CandidateProfile & {
+  isEmailVerified?: boolean;
+  activeSessionsCount?: number;
+  activeLocations?: string[];
+};
+
+export type IndividualAccount = UserAccount;
+
+export interface AuthSession {
+  token: string;
+  user: UserAccount;
+  location: string;
+  device: string;
+  lastActive: string;
+}
+
+export interface WorkspaceSyncData {
+  jobApplications: JobApplication[];
+  resumes: TailoredResume[];
+  coverLetters: TailoredCoverLetter[];
+  atsAnalyses: ATSAnalysis[];
+  interviewPreps: InterviewPrepSession[];
+  lastSyncedAt: string;
+  version: number;
+}
 
 export interface WorkExperience {
   id: string;
