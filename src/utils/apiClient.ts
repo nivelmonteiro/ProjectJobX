@@ -87,7 +87,7 @@ function safeStorageParse<T>(key: string, fallback: T): T {
 }
 
 export const apiClient = {
-  async getCredentials(): Promise<{ credentials: UserCredential[]; maxAllowed: number; maxDailyPerUser: number }> {
+  async getCredentials(): Promise<{ credentials: UserCredential[]; isUnlimited?: boolean }> {
     try {
       const res = await safeFetch('/api/auth/credentials');
       const data = await safeJson(res);
@@ -100,25 +100,77 @@ export const apiClient = {
     const list = safeStorageParse<UserCredential[]>('eire_credentials', []);
     return {
       credentials: list,
-      maxAllowed: 4,
-      maxDailyPerUser: 50
+      isUnlimited: true
     };
   },
 
-  async getQuota(credentialId: string): Promise<{ remaining: number; maxAllowed: number }> {
+  async addAccount(accountData: Partial<UserCredential>): Promise<{ account: UserCredential; credentials: UserCredential[] }> {
+    try {
+      const res = await safeFetch('/api/auth/add-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(accountData)
+      });
+      const data = await safeJson(res);
+      if (data && data.account && Array.isArray(data.credentials)) {
+        return data;
+      }
+    } catch (e) {
+      console.warn('Add account server fallback:', e);
+    }
+    const newId = `IND-${Date.now().toString().slice(-4)}`;
+    const newAccount: UserCredential = {
+      id: accountData.id || newId,
+      name: accountData.name || 'New Candidate',
+      email: accountData.email || `candidate-${newId.toLowerCase()}@eirecareers.ie`,
+      headline: accountData.headline || 'Professional Job Seeker',
+      location: accountData.location || 'Dublin',
+      visaStatus: accountData.visaStatus || 'Stamp 1G',
+      phone: accountData.phone || '+353 87 000 0000',
+      eircode: accountData.eircode || 'D02 X000',
+      linkedinUrl: accountData.linkedinUrl || '',
+      githubUrl: accountData.githubUrl || ''
+    };
+    const list = safeStorageParse<UserCredential[]>('eire_credentials', []);
+    const updated = [...list, newAccount];
+    localStorage.setItem('eire_credentials', JSON.stringify(updated));
+    return { account: newAccount, credentials: updated };
+  },
+
+  async deleteAccount(id: string): Promise<{ credentials: UserCredential[] }> {
+    try {
+      const res = await safeFetch('/api/auth/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await safeJson(res);
+      if (data && Array.isArray(data.credentials)) {
+        return data;
+      }
+    } catch (e) {
+      console.warn('Delete account server fallback:', e);
+    }
+    const list = safeStorageParse<UserCredential[]>('eire_credentials', []);
+    const updated = list.filter(c => c.id !== id);
+    localStorage.setItem('eire_credentials', JSON.stringify(updated));
+    return { credentials: updated };
+  },
+
+  async getQuota(credentialId: string): Promise<{ remaining: number; maxAllowed: number; isUnlimited: boolean }> {
     try {
       const res = await safeFetch(`/api/quota?credentialId=${encodeURIComponent(credentialId)}`);
       const data = await safeJson(res);
       if (data && data.remaining !== undefined) {
-        return data;
+        return { ...data, isUnlimited: true };
       }
     } catch (e) {
       console.warn('Quota check fallback:', e);
     }
-    return { remaining: 50, maxAllowed: 50 };
+    return { remaining: 999999, maxAllowed: 999999, isUnlimited: true };
   },
 
-  async login(credentialId: string, email?: string): Promise<{ credential: UserCredential; remainingQuota: number }> {
+  async login(credentialId: string, email?: string): Promise<{ credential: UserCredential; remainingQuota: number; isUnlimited: boolean }> {
     try {
       const res = await safeFetch('/api/auth/login', {
         method: 'POST',
@@ -127,7 +179,7 @@ export const apiClient = {
       });
       const data = await safeJson(res);
       if (data && data.credential) {
-        return data;
+        return { ...data, isUnlimited: true };
       }
     } catch (e) {
       console.warn('Login fallback to local state:', e);
@@ -136,7 +188,8 @@ export const apiClient = {
     const found = list.find(c => c.id === credentialId || (email && c.email.toLowerCase() === email.toLowerCase())) || list[0];
     return {
       credential: found,
-      remainingQuota: 50
+      remainingQuota: 999999,
+      isUnlimited: true
     };
   },
 

@@ -175,10 +175,7 @@ async function callGeminiExtract(parts: any[]): Promise<string> {
   return '';
 }
 
-// In-Memory & Persistent store for Credentials, Quotas, and User Data
-const MAX_CREDENTIALS = 4;
-const MAX_DAILY_QUOTA = 50; // Generous daily allowance for interactive drafting & prep
-
+// In-Memory & Persistent store for Individual Candidate Accounts (Unlimited AI Generations)
 interface CredentialRecord {
   id: string;
   name: string;
@@ -190,14 +187,14 @@ interface CredentialRecord {
   eircode?: string;
   linkedinUrl?: string;
   githubUrl?: string;
-  dailyUsageCount: number;
-  lastUsageDate: string;
-  maxDailyQuota: number;
+  dailyUsageCount?: number;
+  lastUsageDate?: string;
+  maxDailyQuota?: number;
 }
 
 let credentialsStore: CredentialRecord[] = [
   {
-    id: 'IRL-JOB-101',
+    id: 'IND-101',
     name: 'Nivel Monteiro',
     email: 'nivelmonteiro@outlook.com',
     headline: 'Financial Analyst & Fund Accountant | NAV Accounting, FP&A, KYC & Audit (MBA)',
@@ -205,13 +202,10 @@ let credentialsStore: CredentialRecord[] = [
     visaStatus: 'Stamp 1G',
     phone: '+353 89 984 7924',
     eircode: 'D02 X285',
-    linkedinUrl: 'https://linkedin.com/in/nivelmonteiro',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: MAX_DAILY_QUOTA
+    linkedinUrl: 'https://linkedin.com/in/nivelmonteiro'
   },
   {
-    id: 'IRL-JOB-102',
+    id: 'IND-102',
     name: 'Aoife Murphy',
     email: 'aoife.murphy.irl@eirecareers.ie',
     headline: 'Senior Full Stack Developer (React / Node / AWS)',
@@ -219,13 +213,10 @@ let credentialsStore: CredentialRecord[] = [
     visaStatus: 'EU/EEA Citizen',
     phone: '+353 87 123 4567',
     eircode: 'D02 X285',
-    linkedinUrl: 'https://linkedin.com/in/aoifemurphy-dev',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: MAX_DAILY_QUOTA
+    linkedinUrl: 'https://linkedin.com/in/aoifemurphy-dev'
   },
   {
-    id: 'IRL-JOB-103',
+    id: 'IND-103',
     name: 'Rahul Sharma',
     email: 'rahul.sharma@eirecareers.ie',
     headline: 'Data Scientist & ML Engineer (NFQ Level 9 UCD Graduate)',
@@ -233,13 +224,10 @@ let credentialsStore: CredentialRecord[] = [
     visaStatus: 'Stamp 1G',
     phone: '+353 89 987 6543',
     eircode: 'D04 T294',
-    linkedinUrl: 'https://linkedin.com/in/rahulsharma-ds',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: MAX_DAILY_QUOTA
+    linkedinUrl: 'https://linkedin.com/in/rahulsharma-ds'
   },
   {
-    id: 'IRL-JOB-104',
+    id: 'IND-104',
     name: 'Ciaran O\'Connor',
     email: 'ciaran.oconnor@eirecareers.ie',
     headline: 'Product Manager & Scrum Master (Fintech / IFSC)',
@@ -247,13 +235,10 @@ let credentialsStore: CredentialRecord[] = [
     visaStatus: 'Stamp 4',
     phone: '+353 85 456 7890',
     eircode: 'T12 A345',
-    linkedinUrl: 'https://linkedin.com/in/ciaranoconnor-pm',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: MAX_DAILY_QUOTA
+    linkedinUrl: 'https://linkedin.com/in/ciaranoconnor-pm'
   },
   {
-    id: 'IRL-JOB-105',
+    id: 'IND-105',
     name: 'Elena Rossi',
     email: 'elena.rossi@eirecareers.ie',
     headline: 'DevOps & Cloud Infrastructure Specialist',
@@ -261,59 +246,64 @@ let credentialsStore: CredentialRecord[] = [
     visaStatus: 'Stamp 4',
     phone: '+353 83 321 0987',
     eircode: 'H91 V890',
-    linkedinUrl: 'https://linkedin.com/in/elenarossi-cloud',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: MAX_DAILY_QUOTA
+    linkedinUrl: 'https://linkedin.com/in/elenarossi-cloud'
   }
 ];
 
-// In-Memory user application data store keyed by credential ID
+// In-Memory user application data store keyed by credential/individual ID
 const userDataStore: Record<string, any> = {};
 
-// Helper: refresh quota if date changed
-function refreshQuotaIfNeeded(cred: CredentialRecord) {
-  const today = new Date().toISOString().split('T')[0];
-  if (cred.lastUsageDate !== today) {
-    cred.lastUsageDate = today;
-    cred.dailyUsageCount = 0;
-  }
-}
-
-// Helper: check and consume quota
+// Helper: check and consume quota (Unlimited AI Generations)
 function consumeUserQuota(credentialId: string): { success: boolean; remaining: number; message?: string } {
-  let cred = credentialsStore.find(c => c.id === credentialId);
-  if (!cred) {
-    // If not found, use first credential or fallback
-    cred = credentialsStore[0];
-  }
-  refreshQuotaIfNeeded(cred);
-
-  if (cred.dailyUsageCount >= cred.maxDailyQuota) {
-    return {
-      success: false,
-      remaining: 0,
-      message: `Daily AI generation limit reached (${cred.maxDailyQuota}/${cred.maxDailyQuota} used today). Limit resets at midnight UTC.`
-    };
-  }
-
-  cred.dailyUsageCount += 1;
   return {
     success: true,
-    remaining: cred.maxDailyQuota - cred.dailyUsageCount
+    remaining: 999999
   };
 }
 
-// --- AUTH & CREDENTIAL API ROUTES ---
+// --- ACCOUNTS OF INDIVIDUALS & CANDIDATE PROFILES API ROUTES ---
+
+app.get('/api/quota', (req: Request, res: Response) => {
+  res.json({
+    remaining: 999999,
+    maxAllowed: 999999,
+    isUnlimited: true
+  });
+});
 
 app.get('/api/auth/credentials', (req: Request, res: Response) => {
-  // refresh all quotas
-  credentialsStore.forEach(refreshQuotaIfNeeded);
   res.json({
     credentials: credentialsStore,
-    maxAllowed: MAX_CREDENTIALS,
-    maxDailyPerUser: MAX_DAILY_QUOTA
+    isUnlimited: true
   });
+});
+
+app.post('/api/auth/add-account', (req: Request, res: Response) => {
+  const { name, email, headline, location, visaStatus, phone, eircode, linkedinUrl, githubUrl } = req.body;
+  const newId = `IND-${Date.now().toString().slice(-4)}`;
+  const newAccount: CredentialRecord = {
+    id: req.body.id || newId,
+    name: name || 'New Candidate',
+    email: email || `candidate-${newId.toLowerCase()}@eirecareers.ie`,
+    headline: headline || 'Professional Job Seeker',
+    location: location || 'Dublin',
+    visaStatus: visaStatus || 'Stamp 1G',
+    phone: phone || '+353 87 000 0000',
+    eircode: eircode || 'D02 X000',
+    linkedinUrl: linkedinUrl || '',
+    githubUrl: githubUrl || ''
+  };
+  credentialsStore.push(newAccount);
+  res.json({ success: true, account: newAccount, credentials: credentialsStore });
+});
+
+app.post('/api/auth/delete-account', (req: Request, res: Response) => {
+  const { id } = req.body;
+  if (credentialsStore.length <= 1) {
+    return res.status(400).json({ error: 'Cannot delete the only remaining candidate account.' });
+  }
+  credentialsStore = credentialsStore.filter(c => c.id !== id);
+  res.json({ success: true, credentials: credentialsStore });
 });
 
 app.post('/api/auth/login', (req: Request, res: Response) => {
@@ -321,44 +311,37 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   let cred = credentialsStore.find(c => c.id === credentialId || (email && c.email.toLowerCase() === email.toLowerCase()));
   
   if (!cred) {
-    // If fewer than 4 credentials exist, allow creating one
-    if (credentialsStore.length < MAX_CREDENTIALS && credentialId) {
-      const newCred: CredentialRecord = {
-        id: credentialId,
-        name: req.body.name || 'Job Seeker',
-        email: email || `${credentialId.toLowerCase()}@eirecareers.ie`,
-        headline: req.body.headline || 'Professional Job Seeker',
-        location: req.body.location || 'Dublin (Silicon Docks / City)',
-        visaStatus: req.body.visaStatus || 'EU/EEA/Irish Citizen',
-        phone: req.body.phone || '+353 87 000 0000',
-        eircode: req.body.eircode || 'D02 X000',
-        linkedinUrl: req.body.linkedinUrl || '',
-        dailyUsageCount: 0,
-        lastUsageDate: new Date().toISOString().split('T')[0],
-        maxDailyQuota: MAX_DAILY_QUOTA
-      };
-      credentialsStore.push(newCred);
-      cred = newCred;
-    } else {
-      return res.status(404).json({ error: 'Credential not found. Maximum 4 login credentials allowed.' });
-    }
+    const newCred: CredentialRecord = {
+      id: credentialId || `IND-${Date.now().toString().slice(-4)}`,
+      name: req.body.name || 'Job Seeker',
+      email: email || `${(credentialId || 'user').toLowerCase()}@eirecareers.ie`,
+      headline: req.body.headline || 'Professional Job Seeker',
+      location: req.body.location || 'Dublin',
+      visaStatus: req.body.visaStatus || 'EU/EEA Citizen',
+      phone: req.body.phone || '+353 87 000 0000',
+      eircode: req.body.eircode || 'D02 X000',
+      linkedinUrl: req.body.linkedinUrl || ''
+    };
+    credentialsStore.push(newCred);
+    cred = newCred;
   }
 
-  refreshQuotaIfNeeded(cred);
   res.json({
     credential: cred,
-    remainingQuota: cred.maxDailyQuota - cred.dailyUsageCount
+    remainingQuota: 999999,
+    isUnlimited: true
   });
 });
 
 app.post('/api/auth/update-profile', (req: Request, res: Response) => {
-  const { id, name, headline, location, visaStatus, phone, eircode, linkedinUrl, githubUrl } = req.body;
+  const { id, name, headline, location, visaStatus, phone, eircode, linkedinUrl, githubUrl, email } = req.body;
   const cred = credentialsStore.find(c => c.id === id);
   if (!cred) {
-    return res.status(404).json({ error: 'Credential not found' });
+    return res.status(404).json({ error: 'Account not found' });
   }
 
   if (name) cred.name = name;
+  if (email) cred.email = email;
   if (headline) cred.headline = headline;
   if (location) cred.location = location;
   if (visaStatus) cred.visaStatus = visaStatus;
@@ -985,12 +968,7 @@ function normalizeTailoredResume(raw: any, defaults: {
 app.post('/api/ai/tailor-resume', async (req: Request, res: Response) => {
   const { credentialId, userProfile, jobTitle, companyName, jobDescription, tone, existingResume } = req.body;
   
-  let cred = credentialsStore.find(c => c.id === credentialId);
-  if (!cred) {
-    cred = credentialsStore[0];
-  }
-  refreshQuotaIfNeeded(cred);
-  const currentRemaining = Math.max(0, cred.maxDailyQuota - cred.dailyUsageCount);
+  const currentRemaining = 999999;
 
   const systemPrompt = `You are Ireland's leading Executive Recruiter and ATS CV Optimization Expert.
 You tailor resumes STRICTLY adhering to standard Irish Job Market conventions:

@@ -33,7 +33,7 @@ export type JobStatus =
   | 'Withdrawn';
 
 export interface UserCredential {
-  id: string; // e.g. "IRL-PRO-101"
+  id: string; // e.g. "IND-101"
   name: string;
   email: string;
   headline: string;
@@ -44,10 +44,12 @@ export interface UserCredential {
   linkedinUrl?: string;
   githubUrl?: string;
   portfolioUrl?: string;
-  dailyUsageCount: number; // 0 to 4
-  lastUsageDate: string; // YYYY-MM-DD
-  maxDailyQuota: number; // 4
+  dailyUsageCount?: number;
+  lastUsageDate?: string;
+  maxDailyQuota?: number;
 }
+
+export type IndividualAccount = UserCredential;
 
 export interface WorkExperience {
   id: string;

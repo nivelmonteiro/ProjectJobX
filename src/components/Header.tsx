@@ -1,10 +1,10 @@
 import React from 'react';
 import { UserCredential } from '../types';
-import { FileText, CheckCircle2, Mail, Mic2, Kanban, Globe2, User, Sparkles, AlertCircle, ShieldCheck } from 'lucide-react';
+import { FileText, CheckCircle2, Mail, Mic2, Kanban, Globe2, User, Sparkles, ShieldCheck, Users } from 'lucide-react';
 
 interface HeaderProps {
   currentCredential: UserCredential;
-  remainingQuota: number;
+  remainingQuota?: number;
   activeTab: string;
   onTabChange: (tab: string) => void;
   onOpenCredentialModal: () => void;
@@ -12,7 +12,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentCredential,
-  remainingQuota,
   activeTab,
   onTabChange,
   onOpenCredentialModal
@@ -26,11 +25,9 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'market', label: 'Irish Market & Jobs', icon: Globe2 },
   ];
 
-  const quotaPercent = ((currentCredential.maxDailyQuota - remainingQuota) / currentCredential.maxDailyQuota) * 100;
-
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
-      {/* Top Banner with Quota & Credential Slot */}
+      {/* Top Banner with Individual Account Switcher & Unlimited AI */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-center justify-between py-3 gap-3">
           
@@ -53,55 +50,43 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Mobile Credential trigger */}
+            {/* Mobile Account Switcher Trigger */}
             <div className="sm:hidden">
               <button
                 onClick={onOpenCredentialModal}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200"
               >
                 <User className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{currentCredential.id}</span>
+                <span>{currentCredential.name ? currentCredential.name.split(' ')[0] : currentCredential.id}</span>
               </button>
             </div>
           </div>
 
-          {/* User Profile & Daily Quota Control */}
+          {/* User Profile & Unlimited AI Status */}
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             
-            {/* Daily Generation Quota Widget */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/90 text-xs shadow-2xs">
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-slate-600 font-medium">Daily AI Quota:</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className={`font-bold ${remainingQuota > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                  {remainingQuota} of {currentCredential.maxDailyQuota} left
-                </span>
-                <div className="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      remainingQuota === 0 ? 'bg-rose-500' : remainingQuota === 1 ? 'bg-amber-500' : 'bg-emerald-600'
-                    }`}
-                    style={{ width: `${Math.max(10, 100 - quotaPercent)}%` }}
-                  />
-                </div>
-              </div>
+            {/* Unlimited AI Badge */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200/90 text-xs shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+              <span className="text-emerald-900 font-bold">Unlimited AI Generations</span>
+              <span className="text-[10px] font-semibold bg-emerald-200/70 text-emerald-800 px-1.5 py-0.2 rounded">
+                Active
+              </span>
             </div>
 
-            {/* Credential Account Switcher / Info Button */}
+            {/* Account of Individual Switcher Button */}
             <button
               onClick={onOpenCredentialModal}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors shadow-2xs group"
-              title="Switch user credential profile (Max 4)"
+              title="Manage Accounts of Individuals & Profiles"
             >
-              <div className="w-2 h-2 rounded-full bg-emerald-400 group-hover:animate-pulse" />
-              <span className="font-semibold text-slate-200">{currentCredential.id}</span>
-              <span className="text-slate-400">•</span>
-              <span className="truncate max-w-[110px] text-slate-300">{currentCredential.name.split(' ')[0]}</span>
-              <span className="text-[10px] bg-slate-800 text-emerald-300 px-1.5 py-0.5 rounded font-mono border border-slate-700">
-                {currentCredential.visaStatus.includes('Stamp 4') ? 'Stamp 4' : currentCredential.visaStatus.includes('Stamp 1G') ? 'Stamp 1G' : 'EU/IRL'}
-              </span>
+              <Users className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-semibold text-slate-200">{currentCredential.name}</span>
+              {currentCredential.visaStatus && (
+                <span className="text-[10px] bg-slate-800 text-emerald-300 px-1.5 py-0.5 rounded font-mono border border-slate-700">
+                  {currentCredential.visaStatus}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -131,3 +116,4 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+

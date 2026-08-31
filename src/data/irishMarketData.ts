@@ -135,7 +135,7 @@ export const IRISH_RECRUITMENT_AGENCIES: IrishRecruitmentAgency[] = [
 
 export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
   {
-    id: 'IRL-JOB-101',
+    id: 'IND-101',
     name: 'Nivel Monteiro',
     email: 'nivelmonteiro@outlook.com',
     headline: 'Financial Analyst & Fund Accountant | NAV Accounting, FP&A, KYC & Audit (MBA)',
@@ -143,13 +143,10 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     visaStatus: 'Stamp 1G',
     phone: '+353 89 984 7924',
     eircode: 'D02 X285',
-    linkedinUrl: 'https://linkedin.com/in/nivelmonteiro',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: 4
+    linkedinUrl: 'https://linkedin.com/in/nivelmonteiro'
   },
   {
-    id: 'IRL-JOB-102',
+    id: 'IND-102',
     name: 'Aoife Murphy',
     email: 'aoife.murphy.irl@eirecareers.ie',
     headline: 'Senior Full Stack Developer (React / Node / AWS)',
@@ -158,13 +155,10 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     phone: '+353 87 123 4567',
     eircode: 'D02 X285',
     linkedinUrl: 'https://linkedin.com/in/aoifemurphy-dev',
-    githubUrl: 'https://github.com/aoifemurphy',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: 4
+    githubUrl: 'https://github.com/aoifemurphy'
   },
   {
-    id: 'IRL-JOB-103',
+    id: 'IND-103',
     name: 'Rahul Sharma',
     email: 'rahul.sharma@eirecareers.ie',
     headline: 'Data Scientist & ML Engineer (UCD Graduate)',
@@ -173,13 +167,10 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     phone: '+353 89 987 6543',
     eircode: 'D04 T294',
     linkedinUrl: 'https://linkedin.com/in/rahulsharma-ds',
-    githubUrl: 'https://github.com/rahulsharma-ai',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: 4
+    githubUrl: 'https://github.com/rahulsharma-ai'
   },
   {
-    id: 'IRL-JOB-104',
+    id: 'IND-104',
     name: 'Ciaran O\'Connor',
     email: 'ciaran.oconnor@eirecareers.ie',
     headline: 'Product Manager & Scrum Master (Fintech / Asset Management)',
@@ -187,13 +178,10 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     visaStatus: 'Stamp 4',
     phone: '+353 85 456 7890',
     eircode: 'T12 A345',
-    linkedinUrl: 'https://linkedin.com/in/ciaranoconnor-pm',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: 4
+    linkedinUrl: 'https://linkedin.com/in/ciaranoconnor-pm'
   },
   {
-    id: 'IRL-JOB-105',
+    id: 'IND-105',
     name: 'Elena Rossi',
     email: 'elena.rossi@eirecareers.ie',
     headline: 'DevOps & Cloud Infrastructure Specialist',
@@ -202,10 +190,7 @@ export const INITIAL_USER_CREDENTIALS: UserCredential[] = [
     phone: '+353 83 321 0987',
     eircode: 'H91 V890',
     linkedinUrl: 'https://linkedin.com/in/elenarossi-cloud',
-    githubUrl: 'https://github.com/elenarossi',
-    dailyUsageCount: 0,
-    lastUsageDate: new Date().toISOString().split('T')[0],
-    maxDailyQuota: 4
+    githubUrl: 'https://github.com/elenarossi'
   }
 ];
 

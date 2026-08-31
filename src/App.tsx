@@ -376,6 +376,34 @@ export default function App() {
     }));
   };
 
+  const handleAddAccount = async (accountData: Partial<UserCredential>) => {
+    try {
+      const res = await apiClient.addAccount(accountData);
+      if (res && res.credentials) {
+        setCredentials(res.credentials);
+        if (res.account) {
+          setActiveCredId(res.account.id);
+        }
+      }
+    } catch (e) {
+      console.warn('Error adding candidate account:', e);
+    }
+  };
+
+  const handleDeleteAccount = async (id: string) => {
+    try {
+      const res = await apiClient.deleteAccount(id);
+      if (res && res.credentials) {
+        setCredentials(res.credentials);
+        if (activeCredId === id && res.credentials.length > 0) {
+          setActiveCredId(res.credentials[0].id);
+        }
+      }
+    } catch (e) {
+      console.warn('Error deleting candidate account:', e);
+    }
+  };
+
   const handleUpdateProfile = (updatedData: Partial<UserCredential>) => {
     setCredentials(prev => prev.map(c => {
       if (c.id === updatedData.id) {
@@ -383,6 +411,7 @@ export default function App() {
       }
       return c;
     }));
+    apiClient.updateProfile(updatedData);
   };
 
   const handleSaveResume = (newResume: TailoredResume) => {
@@ -599,6 +628,8 @@ export default function App() {
           setIsCredModalOpen(false);
         }}
         onUpdateProfile={handleUpdateProfile}
+        onAddAccount={handleAddAccount}
+        onDeleteAccount={handleDeleteAccount}
       />
     </div>
   );
