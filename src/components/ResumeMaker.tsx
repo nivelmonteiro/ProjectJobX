@@ -38,6 +38,9 @@ interface ResumeMakerProps {
   savedResumes: TailoredResume[];
   onSaveResume: (resume: TailoredResume) => void;
   onSendToATS: (resumeText: string, jobDesc?: string) => void;
+  initialTargetRole?: string;
+  initialTargetCompany?: string;
+  initialJobDescription?: string;
 }
 
 export const IRISH_VISA_OPTIONS = [
@@ -69,7 +72,10 @@ export const ResumeMaker: React.FC<ResumeMakerProps> = ({
   onQuotaUsed,
   savedResumes,
   onSaveResume,
-  onSendToATS
+  onSendToATS,
+  initialTargetRole,
+  initialTargetCompany,
+  initialJobDescription
 }) => {
   // Candidate Profile & Irish Work Eligibility States (Directly editable by user)
   const [candidateName, setCandidateName] = useState(currentCredential.name || 'Nivel Monteiro');
@@ -81,11 +87,17 @@ export const ResumeMaker: React.FC<ResumeMakerProps> = ({
   const [candidateEircode, setCandidateEircode] = useState(currentCredential.eircode || 'D02 X285');
   const [candidateLinkedin, setCandidateLinkedin] = useState(currentCredential.linkedinUrl || 'https://linkedin.com/in/nivelmonteiro');
 
-  const [jobTitle, setJobTitle] = useState('Financial Analyst (FP&A & Corporate Finance)');
-  const [companyName, setCompanyName] = useState('Bank of Ireland / Stripe Ireland');
+  const [jobTitle, setJobTitle] = useState(initialTargetRole || 'Financial Analyst (FP&A & Corporate Finance)');
+  const [companyName, setCompanyName] = useState(initialTargetCompany || 'Bank of Ireland / Stripe Ireland');
   const [jobDescription, setJobDescription] = useState(
-    'Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin. Requirements: Strong Excel (XLOOKUP, Pivot, financial modeling), Power BI, SAP/ERP knowledge, variance analysis, and immediate full-time Irish work eligibility (Stamp 1G / Stamp 4 / EU Citizen).'
+    initialJobDescription || 'Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin. Requirements: Strong Excel (XLOOKUP, Pivot, financial modeling), Power BI, SAP/ERP knowledge, variance analysis, and immediate full-time Irish work eligibility (Stamp 1G / Stamp 4 / EU Citizen).'
   );
+
+  useEffect(() => {
+    if (initialTargetRole) setJobTitle(initialTargetRole);
+    if (initialTargetCompany) setCompanyName(initialTargetCompany);
+    if (initialJobDescription) setJobDescription(initialJobDescription);
+  }, [initialTargetRole, initialTargetCompany, initialJobDescription]);
   const [tone, setTone] = useState('IFSC Finance & Rigour');
   
   // Existing resume content & file upload state

@@ -303,6 +303,18 @@ export default function App() {
   const [atsInitialResume, setAtsInitialResume] = useState<string>('');
   const [atsInitialJobDesc, setAtsInitialJobDesc] = useState<string>('');
 
+  const [cvInitialRole, setCvInitialRole] = useState<string | undefined>(undefined);
+  const [cvInitialCompany, setCvInitialCompany] = useState<string | undefined>(undefined);
+  const [cvInitialDesc, setCvInitialDesc] = useState<string | undefined>(undefined);
+
+  const [clInitialTitle, setClInitialTitle] = useState<string | undefined>(undefined);
+  const [clInitialCompany, setClInitialCompany] = useState<string | undefined>(undefined);
+  const [clInitialDesc, setClInitialDesc] = useState<string | undefined>(undefined);
+
+  const [intInitialTitle, setIntInitialTitle] = useState<string | undefined>(undefined);
+  const [intInitialCompany, setIntInitialCompany] = useState<string | undefined>(undefined);
+  const [intInitialDesc, setIntInitialDesc] = useState<string | undefined>(undefined);
+
   // Current active credential object
   const currentCredential = credentials.find(c => c.id === activeCredId) || credentials[0];
 
@@ -411,11 +423,64 @@ export default function App() {
   };
 
   const handleSelectJobForCV = (job: ExternalJobListing) => {
+    setCvInitialRole(job.title);
+    setCvInitialCompany(job.company);
+    setCvInitialDesc(job.description);
     setActiveTab('resume');
   };
 
   const handleSelectJobForCoverLetter = (job: ExternalJobListing) => {
+    setClInitialTitle(job.title);
+    setClInitialCompany(job.company);
+    setClInitialDesc(job.description);
     setActiveTab('cover-letter');
+  };
+
+  const handleSelectJobForInterview = (job: ExternalJobListing) => {
+    setIntInitialTitle(job.title);
+    setIntInitialCompany(job.company);
+    setIntInitialDesc(job.description);
+    setActiveTab('interview');
+  };
+
+  const handleTrackJobFromMarket = (job: ExternalJobListing) => {
+    const existing = jobApplications.find(j => 
+      j.jobTitle.toLowerCase() === job.title.toLowerCase() && 
+      j.company.toLowerCase() === job.company.toLowerCase()
+    );
+
+    if (existing) {
+      return;
+    }
+
+    const rawLocation = job.location.toLowerCase();
+    let matchedLocation: any = 'Dublin';
+    if (rawLocation.includes('cork')) matchedLocation = 'Cork';
+    else if (rawLocation.includes('galway')) matchedLocation = 'Galway';
+    else if (rawLocation.includes('limerick')) matchedLocation = 'Limerick';
+    else if (rawLocation.includes('waterford')) matchedLocation = 'Waterford';
+    else if (rawLocation.includes('sligo')) matchedLocation = 'Sligo';
+    else if (rawLocation.includes('athlone')) matchedLocation = 'Athlone';
+
+    const newApp: JobApplication = {
+      id: `app-market-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      jobTitle: job.title,
+      company: job.company,
+      location: matchedLocation,
+      status: 'Saved',
+      currency: 'EUR',
+      salaryMin: 55000,
+      salaryMax: 75000,
+      visaRequirement: currentCredential.visaStatus as any || 'Stamp 1G',
+      jobUrl: job.applyUrl || job.url,
+      jobDescription: job.description,
+      dateApplied: new Date().toISOString().split('T')[0],
+      nextFollowUpDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      notes: `Discovered via ${job.source || 'Irish Market & Jobs'}. ${job.visaFriendlyNote ? `[Visa Note: ${job.visaFriendlyNote}]` : ''}`,
+      updatedAt: new Date().toISOString()
+    };
+
+    handleSaveJobApplication(newApp);
   };
 
   return (
@@ -440,6 +505,9 @@ export default function App() {
             savedResumes={savedResumes}
             onSaveResume={handleSaveResume}
             onSendToATS={handleSendToATS}
+            initialTargetRole={cvInitialRole}
+            initialTargetCompany={cvInitialCompany}
+            initialJobDescription={cvInitialDesc}
           />
         )}
 
@@ -462,6 +530,9 @@ export default function App() {
             onQuotaUsed={handleQuotaUsed}
             savedLetters={savedCoverLetters}
             onSaveLetter={handleSaveCoverLetter}
+            initialJobTitle={clInitialTitle}
+            initialCompanyName={clInitialCompany}
+            initialJobDescription={clInitialDesc}
           />
         )}
 
@@ -472,6 +543,9 @@ export default function App() {
             onQuotaUsed={handleQuotaUsed}
             savedPreps={savedPreps}
             onSavePrep={handleSavePrep}
+            initialJobTitle={intInitialTitle}
+            initialCompanyName={intInitialCompany}
+            initialJobDescription={intInitialDesc}
           />
         )}
 
@@ -481,6 +555,12 @@ export default function App() {
             jobApplications={jobApplications}
             onSaveJobApplication={handleSaveJobApplication}
             onDeleteJobApplication={handleDeleteJobApplication}
+            onSelectForTailoring={(role, company, desc) => {
+              setCvInitialRole(role);
+              setCvInitialCompany(company);
+              setCvInitialDesc(desc);
+              setActiveTab('resume');
+            }}
           />
         )}
 
@@ -488,6 +568,10 @@ export default function App() {
           <IrishMarketExplorer
             onSelectJobForCV={handleSelectJobForCV}
             onSelectJobForCoverLetter={handleSelectJobForCoverLetter}
+            onSelectJobForInterview={handleSelectJobForInterview}
+            jobApplications={jobApplications}
+            onTrackJob={handleTrackJobFromMarket}
+            onNavigateToTracker={() => setActiveTab('tracker')}
           />
         )}
       </main>

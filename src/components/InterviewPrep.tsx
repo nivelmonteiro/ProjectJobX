@@ -24,6 +24,9 @@ interface InterviewPrepProps {
   onQuotaUsed: (newRemaining: number) => void;
   savedPreps: InterviewPrepSession[];
   onSavePrep: (prep: InterviewPrepSession) => void;
+  initialJobTitle?: string;
+  initialCompanyName?: string;
+  initialJobDescription?: string;
 }
 
 export const InterviewPrep: React.FC<InterviewPrepProps> = ({
@@ -31,12 +34,21 @@ export const InterviewPrep: React.FC<InterviewPrepProps> = ({
   remainingQuota,
   onQuotaUsed,
   savedPreps,
-  onSavePrep
+  onSavePrep,
+  initialJobTitle,
+  initialCompanyName,
+  initialJobDescription
 }) => {
-  const [jobTitle, setJobTitle] = useState('Financial Analyst (FP&A & Corporate Finance)');
-  const [companyName, setCompanyName] = useState('Bank of Ireland / Stripe Ireland');
-  const [jobDescription, setJobDescription] = useState('Financial Analyst role in Dublin focusing on corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive KPI reporting.');
+  const [jobTitle, setJobTitle] = useState(initialJobTitle || 'Financial Analyst (FP&A & Corporate Finance)');
+  const [companyName, setCompanyName] = useState(initialCompanyName || 'Bank of Ireland / Stripe Ireland');
+  const [jobDescription, setJobDescription] = useState(initialJobDescription || 'Financial Analyst role in Dublin focusing on corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive KPI reporting.');
   const [focusArea, setFocusArea] = useState('Competency STAR Framework & Irish Workplace Culture');
+
+  React.useEffect(() => {
+    if (initialJobTitle) setJobTitle(initialJobTitle);
+    if (initialCompanyName) setCompanyName(initialCompanyName);
+    if (initialJobDescription) setJobDescription(initialJobDescription);
+  }, [initialJobTitle, initialCompanyName, initialJobDescription]);
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);

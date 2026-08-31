@@ -25,6 +25,9 @@ interface CoverLetterMakerProps {
   onQuotaUsed: (newRemaining: number) => void;
   savedLetters: TailoredCoverLetter[];
   onSaveLetter: (letter: TailoredCoverLetter) => void;
+  initialJobTitle?: string;
+  initialCompanyName?: string;
+  initialJobDescription?: string;
 }
 
 export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
@@ -32,7 +35,10 @@ export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
   remainingQuota,
   onQuotaUsed,
   savedLetters,
-  onSaveLetter
+  onSaveLetter,
+  initialJobTitle,
+  initialCompanyName,
+  initialJobDescription
 }) => {
   const [candidateName, setCandidateName] = useState(currentCredential.name || 'Nivel Monteiro');
   const [candidateVisa, setCandidateVisa] = useState(currentCredential.visaStatus || 'Stamp 1G');
@@ -40,13 +46,19 @@ export const CoverLetterMaker: React.FC<CoverLetterMakerProps> = ({
   const [candidateEmail, setCandidateEmail] = useState(currentCredential.email || 'nivelmonteiro@outlook.com');
   const [candidateLocation, setCandidateLocation] = useState(currentCredential.location || 'Dublin');
 
-  const [jobTitle, setJobTitle] = useState('Financial Analyst (FP&A & Corporate Finance)');
-  const [companyName, setCompanyName] = useState('Bank of Ireland / Stripe Ireland');
+  const [jobTitle, setJobTitle] = useState(initialJobTitle || 'Financial Analyst (FP&A & Corporate Finance)');
+  const [companyName, setCompanyName] = useState(initialCompanyName || 'Bank of Ireland / Stripe Ireland');
   const [companyLocation, setCompanyLocation] = useState('Dublin, Ireland');
   const [hiringManager, setHiringManager] = useState('Hiring Manager & Finance Leadership');
   const [tone, setTone] = useState('Professional & Impactful');
   const [keyPoints, setKeyPoints] = useState('8+ years progressive corporate financial modeling, NAV accounting, variance forecasting, and MBA from Dublin Business School (NFQ Level 9).');
-  const [jobDescription, setJobDescription] = useState('Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin.');
+  const [jobDescription, setJobDescription] = useState(initialJobDescription || 'Financial Analyst to lead corporate financial modeling, multi-scenario budgeting, variance analysis, cash flow forecasting, and executive reporting in Dublin.');
+
+  useEffect(() => {
+    if (initialJobTitle) setJobTitle(initialJobTitle);
+    if (initialCompanyName) setCompanyName(initialCompanyName);
+    if (initialJobDescription) setJobDescription(initialJobDescription);
+  }, [initialJobTitle, initialCompanyName, initialJobDescription]);
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);

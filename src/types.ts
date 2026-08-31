@@ -230,6 +230,24 @@ export interface ExternalJobListing {
   tags: string[];
   description: string;
   url: string;
+  applyUrl?: string;
   postedDate: string;
   category: string;
+  source?: string;
+  sourceType?: 'google-search' | 'linkedin' | 'indeed' | 'irishjobs' | 'agency' | 'publicjobs' | 'company-site';
+  agencyName?: string;
+  visaFriendlyNote?: string;
 }
+
+export interface IrishRecruitmentAgency {
+  id: string;
+  name: string;
+  specialism: string;
+  locations: string[];
+  websiteUrl: string;
+  jobsUrl: string;
+  logoText: string;
+  keySectors: string[];
+  recruiterTip: string;
+}
+
