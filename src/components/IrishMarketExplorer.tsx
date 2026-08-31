@@ -77,14 +77,14 @@ export const IrishMarketExplorer: React.FC<IrishMarketExplorerProps> = ({
   // Check if a job is already in the Job Tracker
   const isJobTracked = (job: ExternalJobListing) => {
     return jobApplications.some(app => 
-      app.jobTitle.toLowerCase() === job.title.toLowerCase() &&
-      app.companyName.toLowerCase() === job.company.toLowerCase()
+      (app.jobTitle || '').toLowerCase() === (job.title || '').toLowerCase() &&
+      (app.company || '').toLowerCase() === (job.company || '').toLowerCase()
     );
   };
 
   // Perform live web & Google Search Engine search for Irish jobs
   const handlePerformLiveSearch = async (queryToUse?: string) => {
-    const q = (queryToUse !== undefined ? queryToUse : searchQuery).trim();
+    const q = (queryToUse !== undefined ? queryToUse : searchQuery || '').trim();
     if (!q) return;
 
     setIsSearchingLive(true);
@@ -126,24 +126,24 @@ export const IrishMarketExplorer: React.FC<IrishMarketExplorerProps> = ({
 
   // Filter the currently displayed jobs
   const filteredJobs = jobs.filter(j => {
-    const q = searchQuery.toLowerCase().trim();
+    const q = (searchQuery || '').toLowerCase().trim();
     const matchesSearch = !q || 
-      j.title.toLowerCase().includes(q) ||
-      j.company.toLowerCase().includes(q) ||
-      j.description.toLowerCase().includes(q) ||
-      j.tags.some(t => t.toLowerCase().includes(q));
+      (j.title || '').toLowerCase().includes(q) ||
+      (j.company || '').toLowerCase().includes(q) ||
+      (j.description || '').toLowerCase().includes(q) ||
+      (Array.isArray(j.tags) && j.tags.some(t => (t || '').toLowerCase().includes(q)));
 
-    const matchesLoc = locationFilter === 'all' || j.location.toLowerCase().includes(locationFilter.toLowerCase());
+    const matchesLoc = locationFilter === 'all' || (j.location || '').toLowerCase().includes(locationFilter.toLowerCase());
     const matchesCat = categoryFilter === 'all' || j.category === categoryFilter;
     
     let matchesSource = true;
     if (sourceFilter !== 'all') {
-      if (sourceFilter === 'google-search') matchesSource = j.sourceType === 'google-search' || j.source?.includes('Google');
-      else if (sourceFilter === 'linkedin') matchesSource = j.sourceType === 'linkedin' || j.source?.includes('LinkedIn');
-      else if (sourceFilter === 'indeed') matchesSource = j.sourceType === 'indeed' || j.source?.includes('Indeed');
-      else if (sourceFilter === 'irishjobs') matchesSource = j.sourceType === 'irishjobs' || j.source?.includes('IrishJobs') || j.source?.includes('Jobs.ie');
+      if (sourceFilter === 'google-search') matchesSource = j.sourceType === 'google-search' || Boolean(j.source?.includes('Google'));
+      else if (sourceFilter === 'linkedin') matchesSource = j.sourceType === 'linkedin' || Boolean(j.source?.includes('LinkedIn'));
+      else if (sourceFilter === 'indeed') matchesSource = j.sourceType === 'indeed' || Boolean(j.source?.includes('Indeed'));
+      else if (sourceFilter === 'irishjobs') matchesSource = j.sourceType === 'irishjobs' || Boolean(j.source?.includes('IrishJobs')) || Boolean(j.source?.includes('Jobs.ie'));
       else if (sourceFilter === 'agency') matchesSource = j.sourceType === 'agency' || Boolean(j.agencyName);
-      else if (sourceFilter === 'publicjobs') matchesSource = j.sourceType === 'publicjobs' || j.source?.includes('PublicJobs');
+      else if (sourceFilter === 'publicjobs') matchesSource = j.sourceType === 'publicjobs' || Boolean(j.source?.includes('PublicJobs'));
     }
 
     return matchesSearch && matchesLoc && matchesCat && matchesSource;

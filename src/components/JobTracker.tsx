@@ -76,9 +76,12 @@ export const JobTracker: React.FC<JobTrackerProps> = ({
 
   // Filtered applications
   const filteredApps = jobApplications.filter(app => {
-    const matchesSearch = app.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.company.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesLoc = filterLocation === 'all' || app.location.includes(filterLocation);
+    const q = (searchQuery || '').toLowerCase();
+    const matchesSearch = !q || 
+      (app.jobTitle || '').toLowerCase().includes(q) ||
+      (app.company || '').toLowerCase().includes(q) ||
+      (app.notes || '').toLowerCase().includes(q);
+    const matchesLoc = filterLocation === 'all' || (app.location || '').includes(filterLocation);
     return matchesSearch && matchesLoc;
   });
 

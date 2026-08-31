@@ -1464,92 +1464,101 @@ Return 6 to 8 active vacancies in Ireland. Provide a clean JSON object without M
   ]
 }`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
-        contents: searchPrompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-        },
-      });
+      let geminiSuccess = false;
+      for (const searchModel of GEMINI_MODELS) {
+        try {
+          const response = await ai.models.generateContent({
+            model: searchModel,
+            contents: searchPrompt,
+            config: {
+              tools: [{ googleSearch: {} }],
+            },
+          });
 
-      // Extract real web URLs from grounding chunks
-      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-      if (Array.isArray(chunks)) {
-        for (const chunk of chunks) {
-          if (chunk.web?.uri) {
-            groundingSources.push({
-              title: chunk.web.title || 'Irish Employment Listing',
-              url: chunk.web.uri,
+          // Extract real web URLs from grounding chunks
+          const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+          if (Array.isArray(chunks)) {
+            for (const chunk of chunks) {
+              if (chunk.web?.uri) {
+                groundingSources.push({
+                  title: chunk.web.title || 'Irish Employment Listing',
+                  url: chunk.web.uri,
+                });
+              }
+            }
+          }
+
+          const responseText = response.text || '';
+          let parsedJobs: any[] = [];
+
+          // Clean JSON extraction
+          let jsonString = responseText.trim();
+          const codeBlockMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+          if (codeBlockMatch) {
+            jsonString = codeBlockMatch[1].trim();
+          }
+
+          try {
+            const jsonParsed = JSON.parse(jsonString);
+            if (Array.isArray(jsonParsed.jobs)) {
+              parsedJobs = jsonParsed.jobs;
+            } else if (Array.isArray(jsonParsed)) {
+              parsedJobs = jsonParsed;
+            }
+          } catch (parseErr) {
+            // Look for JSON array or object substring
+            const firstBracket = jsonString.indexOf('{');
+            const lastBracket = jsonString.lastIndexOf('}');
+            if (firstBracket !== -1 && lastBracket !== -1) {
+              try {
+                const extracted = JSON.parse(jsonString.substring(firstBracket, lastBracket + 1));
+                if (Array.isArray(extracted.jobs)) parsedJobs = extracted.jobs;
+              } catch (e) {
+                // Ignore parse errors on fallback
+              }
+            }
+          }
+
+          if (parsedJobs.length > 0) {
+            // Ensure every job has a valid unique ID, direct applyUrl, and source
+            const formattedJobs = parsedJobs.map((j, idx) => {
+              const fallbackGroundingUrl = groundingSources[idx % (groundingSources.length || 1)]?.url;
+              const defaultApply = j.applyUrl || j.url || fallbackGroundingUrl || `https://www.google.com/search?q=${encodeURIComponent(`${j.title} ${j.company} Ireland jobs`)}&ibp=htl;jobs`;
+              return {
+                id: j.id || `live-job-${Date.now()}-${idx}`,
+                title: j.title || 'Specialist Professional',
+                company: j.company || 'Irish Enterprise / MNC',
+                location: j.location || (userLoc !== 'Ireland' ? userLoc : 'Dublin, Ireland'),
+                isRemote: Boolean(j.isRemote),
+                salary: j.salary || '€50,000 - €70,000 + Benefits',
+                tags: Array.isArray(j.tags) && j.tags.length > 0 ? j.tags : ['Irish Market', 'Full Time', 'Work Authorization'],
+                description: j.description || `${j.title} position in ${j.location || 'Dublin'}. Competitive salary and strong career progression.`,
+                url: defaultApply,
+                applyUrl: defaultApply,
+                postedDate: j.postedDate || 'Active Vacancy',
+                category: j.category || userCat,
+                source: j.source || 'Google Search Engine',
+                sourceType: j.sourceType || 'google-search',
+                agencyName: j.agencyName || undefined,
+                visaFriendlyNote: j.visaFriendlyNote || 'Stamp 1G / Stamp 4 / EU Eligible'
+              };
+            });
+
+            return res.json({
+              jobs: formattedJobs,
+              groundingSources: groundingSources.slice(0, 8),
+              queryUsed: userQuery,
+              isLiveSearch: true
             });
           }
+          geminiSuccess = true;
+          break;
+        } catch (modelErr: any) {
+          // Continue to next model tier
         }
-      }
-
-      const responseText = response.text || '';
-      let parsedJobs: any[] = [];
-
-      // Clean JSON extraction
-      let jsonString = responseText.trim();
-      const codeBlockMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (codeBlockMatch) {
-        jsonString = codeBlockMatch[1].trim();
-      }
-
-      try {
-        const jsonParsed = JSON.parse(jsonString);
-        if (Array.isArray(jsonParsed.jobs)) {
-          parsedJobs = jsonParsed.jobs;
-        } else if (Array.isArray(jsonParsed)) {
-          parsedJobs = jsonParsed;
-        }
-      } catch (parseErr) {
-        // Look for JSON array or object substring
-        const firstBracket = jsonString.indexOf('{');
-        const lastBracket = jsonString.lastIndexOf('}');
-        if (firstBracket !== -1 && lastBracket !== -1) {
-          try {
-            const extracted = JSON.parse(jsonString.substring(firstBracket, lastBracket + 1));
-            if (Array.isArray(extracted.jobs)) parsedJobs = extracted.jobs;
-          } catch (e) {
-            console.warn('Could not parse extracted JSON substring from Gemini Google Search output');
-          }
-        }
-      }
-
-      if (parsedJobs.length > 0) {
-        // Ensure every job has a valid unique ID, direct applyUrl, and source
-        const formattedJobs = parsedJobs.map((j, idx) => {
-          const fallbackGroundingUrl = groundingSources[idx % (groundingSources.length || 1)]?.url;
-          const defaultApply = j.applyUrl || j.url || fallbackGroundingUrl || `https://www.google.com/search?q=${encodeURIComponent(`${j.title} ${j.company} Ireland jobs`)}&ibp=htl;jobs`;
-          return {
-            id: j.id || `live-job-${Date.now()}-${idx}`,
-            title: j.title || 'Specialist Professional',
-            company: j.company || 'Irish Enterprise / MNC',
-            location: j.location || (userLoc !== 'Ireland' ? userLoc : 'Dublin, Ireland'),
-            isRemote: Boolean(j.isRemote),
-            salary: j.salary || '€50,000 - €70,000 + Benefits',
-            tags: Array.isArray(j.tags) && j.tags.length > 0 ? j.tags : ['Irish Market', 'Full Time', 'Work Authorization'],
-            description: j.description || `${j.title} position in ${j.location || 'Dublin'}. Competitive salary and strong career progression.`,
-            url: defaultApply,
-            applyUrl: defaultApply,
-            postedDate: j.postedDate || 'Active Vacancy',
-            category: j.category || userCat,
-            source: j.source || 'Google Search Engine',
-            sourceType: j.sourceType || 'google-search',
-            agencyName: j.agencyName || undefined,
-            visaFriendlyNote: j.visaFriendlyNote || 'Stamp 1G / Stamp 4 / EU Eligible'
-          };
-        });
-
-        return res.json({
-          jobs: formattedJobs,
-          groundingSources: groundingSources.slice(0, 8),
-          queryUsed: userQuery,
-          isLiveSearch: true
-        });
       }
     } catch (err: any) {
-      console.warn('Gemini live job search note (activating enriched Irish aggregator fallback):', err?.message || err);
+      console.log('[Live Job Search Engine] Initializing enriched Irish market directory fallback.');
     }
   }
 

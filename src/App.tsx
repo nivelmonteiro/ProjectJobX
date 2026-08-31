@@ -445,15 +445,15 @@ export default function App() {
 
   const handleTrackJobFromMarket = (job: ExternalJobListing) => {
     const existing = jobApplications.find(j => 
-      j.jobTitle.toLowerCase() === job.title.toLowerCase() && 
-      j.company.toLowerCase() === job.company.toLowerCase()
+      (j.jobTitle || '').toLowerCase() === (job.title || '').toLowerCase() && 
+      (j.company || '').toLowerCase() === (job.company || '').toLowerCase()
     );
 
     if (existing) {
       return;
     }
 
-    const rawLocation = job.location.toLowerCase();
+    const rawLocation = (job.location || '').toLowerCase();
     let matchedLocation: any = 'Dublin';
     if (rawLocation.includes('cork')) matchedLocation = 'Cork';
     else if (rawLocation.includes('galway')) matchedLocation = 'Galway';
